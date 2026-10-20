@@ -73,6 +73,7 @@ export default async function Convidados({ searchParams }: { searchParams: Promi
         <input
           name="q"
           type="search"
+          aria-label="Buscar convidado ou criança"
           defaultValue={busca}
           placeholder="Buscar nome do adulto ou criança"
           className="campo min-w-0 basis-full py-2 text-sm sm:basis-0 sm:flex-1"

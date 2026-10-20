@@ -18,5 +18,20 @@ services:
       timeout: 3s
       retries: 10
 
+  # O site inteiro em container (usado pelo Marreta): docker compose --profile app up -d --build
+  web:
+    profiles: ["app"]
+    build: .
+    container_name: torneio-web
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://torneio:torneio@db:5432/torneio
+      DATABASE_URL_UNPOOLED: postgresql://torneio:torneio@db:5432/torneio
+    ports:
+      - "3030:3030"
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   torneio-db:

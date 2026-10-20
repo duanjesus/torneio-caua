@@ -68,7 +68,7 @@ export function FotoCrianca({
           </button>
           {foto && !enviando && (
             <button type="button" onClick={() => onChange(null)} className="ml-3 text-zinc-500 hover:text-fla-400">
-              Remover
+              Tirar foto
             </button>
           )}
           <p className="text-xs text-zinc-500">Opcional. Aparece na escalação do site e na TV do campo.</p>

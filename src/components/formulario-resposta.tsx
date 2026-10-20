@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { EVENTO } from "@/lib/evento";
 import { AvisoEquipamento } from "./aviso-equipamento";
 import { FotoCrianca } from "./foto-crianca";
@@ -61,6 +61,18 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
   const [erros, setErros] = useState<Erros>({});
   const [falha, setFalha] = useState<string | null>(null);
   const [enviando, iniciar] = useTransition();
+  const formulario = useRef<HTMLFormElement>(null);
+  const [tentativa, setTentativa] = useState(0);
+
+  // No celular o botão fica lá embaixo e o campo errado, lá em cima: leva a pessoa até o primeiro erro.
+  useEffect(() => {
+    if (tentativa === 0) return;
+    const erro = formulario.current?.querySelector<HTMLElement>(".erro");
+    if (!erro) return;
+    erro.parentElement?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const campo = erro.parentElement?.querySelector<HTMLElement>("input, select, textarea");
+    campo?.focus({ preventScroll: true });
+  }, [tentativa]);
 
   const vem = presenca === "SIM" || presenca === "TALVEZ";
 
@@ -109,6 +121,7 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
         } else {
           setErros(r.erros);
           setFalha(r.erros.geral ?? "Confira os campos marcados.");
+          setTentativa((n) => n + 1);
         }
       } catch {
         setFalha("Não deu para salvar agora. Tente de novo em instantes.");
@@ -119,7 +132,7 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
   const jogadores = criancas.filter((c) => c.joga).length;
 
   return (
-    <form onSubmit={enviar} noValidate className="space-y-6">
+    <form ref={formulario} onSubmit={enviar} noValidate className="space-y-6">
       <fieldset>
         <legend className="mb-3 flex items-center gap-3">
           <span className="font-display flex size-7 shrink-0 items-center justify-center rounded-full bg-fla-500 text-base leading-none text-white">
