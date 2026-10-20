@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@theme {
+  --color-campo-950: #070707;
+  --color-campo-900: #0f0f10;
+  --color-campo-800: #18181a;
+  --color-campo-700: #242427;
+  --color-campo-600: #34343a;
+  --color-fla-700: #a30000;
+  --color-fla-600: #c80000;
+  --color-fla-500: #e10600;
+  --color-fla-400: #ff2a1f;
+
+  --font-sans: var(--font-texto), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-titulo), Impact, "Arial Narrow", sans-serif;
+}
+
+html {
+  background: var(--color-campo-950);
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-campo-950);
+  color: #f4f4f5;
+}
+
+/* Riscos diagonais como os da arte do convite */
+.riscos {
+  background-image: repeating-linear-gradient(
+    -55deg,
+    rgb(255 255 255 / 0.025) 0 2px,
+    transparent 2px 14px
+  );
+}
+
+/* Título com cara de pincel: condensado e inclinado */
+.titulo-pincel {
+  font-family: var(--font-display);
+  font-style: italic;
+  transform: skewX(-6deg);
+  letter-spacing: 0.01em;
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-base font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+}
+@utility btn-primario {
+  @apply btn bg-fla-500 text-white hover:bg-fla-400 active:bg-fla-600;
+}
+@utility btn-secundario {
+  @apply btn border border-campo-600 bg-campo-800 text-zinc-100 hover:bg-campo-700;
+}
+@utility btn-pequeno {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-lg border border-campo-600 bg-campo-800 px-3 py-1.5 text-sm font-medium text-zinc-100 hover:bg-campo-700;
+}
+@utility campo {
+  @apply w-full rounded-xl border border-campo-600 bg-campo-900 px-3.5 py-3 text-base text-zinc-100 placeholder:text-zinc-500 focus:border-fla-500 focus:ring-2 focus:ring-fla-500/30 focus:outline-none;
+}
+@utility rotulo {
+  @apply mb-1.5 block text-sm font-medium text-zinc-300;
+}
+@utility erro {
+  @apply mt-1 text-sm text-fla-400;
+}
+@utility cartao {
+  @apply rounded-2xl border border-campo-700 bg-campo-900;
+}

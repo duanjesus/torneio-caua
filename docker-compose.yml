@@ -1,0 +1,22 @@
+name: torneio-caua
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: torneio-db
+    environment:
+      POSTGRES_USER: torneio
+      POSTGRES_PASSWORD: torneio
+      POSTGRES_DB: torneio
+    ports:
+      - "5442:5432"
+    volumes:
+      - torneio-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U torneio"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  torneio-db:

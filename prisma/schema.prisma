@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Presenca {
+  SIM
+  NAO
+  TALVEZ
+}
+
+/// Uma resposta ao convite: a família que vem (ou não vem) à festa.
+model Resposta {
+  id              Int       @id @default(autoincrement())
+  /// Segredo do link "editar minha resposta". Nunca aparece em lista pública.
+  token           String    @unique
+  responsavel     String
+  telefone        String
+  presenca        Presenca
+  /// Adultos que vêm, contando o responsável.
+  adultos         Int       @default(0)
+  recado          String?
+  criadoPeloAdmin Boolean   @default(false)
+  criadoEm        DateTime  @default(now())
+  atualizadoEm    DateTime  @updatedAt
+  criancas        Crianca[]
+}
+
+/// Criança de uma família. `joga = true` faz dela jogadora inscrita no torneio.
+model Crianca {
+  id         Int      @id @default(autoincrement())
+  respostaId Int
+  resposta   Resposta @relation(fields: [respostaId], references: [id], onDelete: Cascade)
+  nome       String
+  idade      Int
+  joga       Boolean  @default(false)
+  goleiro    Boolean  @default(false)
+  /// 1 a 3, definido só pelo admin, para equilibrar os times no sorteio.
+  nivel      Int?
+  ordem      Int      @default(0)
+
+  @@index([respostaId])
+}
