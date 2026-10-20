@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3030",
     "build": "prisma generate && next build",
+    "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start -p 3030",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test src/lib/*.test.ts",
