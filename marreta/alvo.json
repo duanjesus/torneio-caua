@@ -1,0 +1,140 @@
+{
+  "nome": "torneio-caua",
+  "descricao": "Torneio do Cauã: convite, confirmação com crianças, painel do organizador e placar ao vivo, em ambiente isolado",
+  "rede": "torneio-marreta_default",
+  "tuneis": {
+    "3031": "web:3030"
+  },
+  "urls": {
+    "convite": "http://localhost:3031/",
+    "admin": "http://localhost:3031/admin",
+    "torneio": "http://localhost:3031/torneio"
+  },
+  "erroNaTela": "p[role=\"alert\"]",
+  "ambiente": {
+    "pronto": [
+      "http://localhost:3031/"
+    ],
+    "antesDeSubir": [
+      "docker compose -p torneio-marreta --profile app -f docker-compose.yml -f marreta/compose.marreta.yml down -v"
+    ],
+    "subir": "docker compose -p torneio-marreta --profile app -f docker-compose.yml -f marreta/compose.marreta.yml up -d --build",
+    "antes": [
+      "docker cp marreta/semente.sql torneio-marreta-db:/tmp/semente.sql",
+      "docker exec torneio-marreta-db psql -U torneio -d torneio -v ON_ERROR_STOP=1 -q -f /tmp/semente.sql"
+    ],
+    "parar": "docker compose -p torneio-marreta --profile app -f docker-compose.yml -f marreta/compose.marreta.yml down -v",
+    "esperaS": 900
+  },
+  "limites": {
+    "lentoMs": 800,
+    "respostaGrandeKb": 500
+  },
+  "explorar": {
+    "evitar": [
+      "^Sair$",
+      "wa\\.me",
+      "youtube",
+      "lancereplay",
+      "google\\.com",
+      "Tela cheia"
+    ]
+  },
+  "padroes": {
+    "operadores": 6
+  },
+  "personas": [
+    {
+      "nome": "Convidada Ana",
+      "usuario": "ana",
+      "tela": "celular",
+      "entrada": "convite",
+      "fluxos": {
+        "convite: confirmar com crianças": 5,
+        "convite: mudar a resposta": 3,
+        "convite: avisar que não vai": 1,
+        "convite: enviar com erro": 1,
+        "convite: link de resposta que não existe": 1
+      }
+    },
+    {
+      "nome": "Convidado Bruno",
+      "usuario": "bruno",
+      "tela": "celular",
+      "entrada": "convite",
+      "fluxos": {
+        "convite: confirmar com crianças": 5,
+        "convite: mudar a resposta": 3,
+        "convite: avisar que não vai": 1,
+        "convite: enviar com erro": 1
+      }
+    },
+    {
+      "nome": "Convidada Carla",
+      "usuario": "carla",
+      "entrada": "convite",
+      "fluxos": {
+        "convite: confirmar com crianças": 4,
+        "convite: mudar a resposta": 2,
+        "torcida: acompanhar o torneio": 2
+      }
+    },
+    {
+      "nome": "Torcedor Davi",
+      "usuario": "davi",
+      "tela": "celular",
+      "entrada": "torneio",
+      "fluxos": {
+        "torcida: acompanhar o torneio": 5,
+        "torcida: olhar a TV": 2
+      }
+    },
+    {
+      "nome": "Organizador",
+      "usuario": "admin",
+      "senha": "mrt-torneio-5b2e81",
+      "tela": "celular",
+      "entrada": "admin",
+      "fluxos": {
+        "admin: montar o torneio": 6,
+        "admin: apitar um jogo": 8,
+        "admin: conferir os números": 2,
+        "admin: dar nível aos jogadores": 2,
+        "admin: abrir os lembretes": 1,
+        "admin: cadastrar um lance": 2
+      }
+    }
+  ],
+  "verificacoes": [
+    {
+      "nome": "Nenhuma resposta gravada em dobro (cada convidado de teste aparece uma vez só)",
+      "comando": "docker exec torneio-marreta-db psql -U torneio -d torneio -At -c \"select 'EM DOBRO: ' || responsavel || ' x' || count(*) from \\\"Resposta\\\" group by responsavel having count(*) > 1\"",
+      "falhaSe": "EM DOBRO"
+    },
+    {
+      "nome": "Quem não vai não tem criança jogando",
+      "comando": "docker exec torneio-marreta-db psql -U torneio -d torneio -At -c \"select 'JOGA SEM IR: ' || c.nome from \\\"Crianca\\\" c join \\\"Resposta\\\" r on r.id = c.\\\"respostaId\\\" where r.presenca = 'NAO' and c.joga\"",
+      "falhaSe": "JOGA SEM IR"
+    },
+    {
+      "nome": "Ninguém está num time sem estar inscrito para jogar",
+      "comando": "docker exec torneio-marreta-db psql -U torneio -d torneio -At -c \"select 'NO TIME SEM JOGAR: ' || nome from \\\"Crianca\\\" where \\\"timeId\\\" is not null and not joga\"",
+      "falhaSe": "NO TIME SEM JOGAR"
+    },
+    {
+      "nome": "Todo gol é de um dos dois times do jogo",
+      "comando": "docker exec torneio-marreta-db psql -U torneio -d torneio -At -c \"select 'GOL DE FORA: jogo ' || j.numero from \\\"Gol\\\" g join \\\"Jogo\\\" j on j.id = g.\\\"jogoId\\\" where g.\\\"timeId\\\" is distinct from j.\\\"timeAId\\\" and g.\\\"timeId\\\" is distinct from j.\\\"timeBId\\\"\"",
+      "falhaSe": "GOL DE FORA"
+    },
+    {
+      "nome": "Mata-mata encerrado sempre tem vencedor (no placar ou nos pênaltis)",
+      "comando": "docker exec torneio-marreta-db psql -U torneio -d torneio -At -c \"select 'EMPATE SEM VENCEDOR: jogo ' || j.numero from \\\"Jogo\\\" j where j.fase <> 'GRUPOS' and j.status = 'ENCERRADO' and (select count(*) from \\\"Gol\\\" g where g.\\\"jogoId\\\" = j.id and g.\\\"timeId\\\" = j.\\\"timeAId\\\") = (select count(*) from \\\"Gol\\\" g where g.\\\"jogoId\\\" = j.id and g.\\\"timeId\\\" = j.\\\"timeBId\\\") and (j.\\\"penaltisA\\\" is null or j.\\\"penaltisA\\\" = j.\\\"penaltisB\\\")\"",
+      "falhaSe": "EMPATE SEM VENCEDOR"
+    },
+    {
+      "nome": "A chave avança: jogo à espera do vencedor de um jogo decidido já sabe quem joga",
+      "comando": "docker exec torneio-marreta-db psql -U torneio -d torneio -At -c \"with p as (select j.numero, j.status, j.\\\"penaltisA\\\" pa, j.\\\"penaltisB\\\" pb, (select count(*) from \\\"Gol\\\" g where g.\\\"jogoId\\\" = j.id and g.\\\"timeId\\\" = j.\\\"timeAId\\\") ga, (select count(*) from \\\"Gol\\\" g where g.\\\"jogoId\\\" = j.id and g.\\\"timeId\\\" = j.\\\"timeBId\\\") gb from \\\"Jogo\\\" j) select 'CHAVE PARADA: jogo ' || d.numero from \\\"Jogo\\\" d join p on p.status = 'ENCERRADO' and (p.ga <> p.gb or p.pa <> p.pb) where d.status = 'AGENDADO' and ((d.\\\"fonteA\\\" in ('V:' || p.numero, 'D:' || p.numero) and d.\\\"timeAId\\\" is null) or (d.\\\"fonteB\\\" in ('V:' || p.numero, 'D:' || p.numero) and d.\\\"timeBId\\\" is null))\"",
+      "falhaSe": "CHAVE PARADA"
+    }
+  ]
+}

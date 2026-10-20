@@ -1,0 +1,19 @@
+# Ambiente só do Marreta: outra cópia do site, com banco próprio e vazio, sem portas neste
+# computador e sem ler o .env de verdade. O banco de desenvolvimento não é tocado, e nada
+# chega ao site no ar.
+#   docker compose -p torneio-marreta --profile app -f docker-compose.yml -f marreta/compose.marreta.yml up -d --build
+services:
+  db:
+    container_name: torneio-marreta-db
+    ports: !reset []
+  web:
+    container_name: torneio-marreta-web
+    ports: !reset []
+    env_file: !reset []
+    environment:
+      DATABASE_URL: postgresql://torneio:torneio@db:5432/torneio
+      DATABASE_URL_UNPOOLED: postgresql://torneio:torneio@db:5432/torneio
+      PUBLIC_URL: http://localhost:3031
+      # Credenciais de teste, só deste ambiente (as mesmas do alvo.json)
+      ADMIN_PASSWORD: mrt-torneio-5b2e81
+      SESSION_SECRET: 9c1e4a7b2d5f8e0a3c6b9d2e5f8a1b4c7d0e3f6a9b2c5d8e1f4a7b0c3d6e9f2a
