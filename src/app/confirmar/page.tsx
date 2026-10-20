@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FormularioResposta } from "@/components/formulario-resposta";
-import { EVENTO } from "@/lib/evento";
+import { EVENTO, prazoEncerrado } from "@/lib/evento";
 import { buscarPorToken, paraFormulario } from "@/lib/respostas";
 import { responderConvite } from "../actions";
 
@@ -32,6 +32,19 @@ export default async function Confirmar({ searchParams }: { searchParams: Promis
             </h1>
           </div>
         </header>
+
+        {prazoEncerrado() ? (
+          <p className="mt-6 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+            O prazo de confirmação acabou ({EVENTO.prazoTexto}), mas ainda dá para responder. Os times já foram
+            sorteados: crianças inscritas agora entram no torneio se houver vaga.
+          </p>
+        ) : (
+          !existente && (
+            <p className="mt-4 text-sm text-zinc-400">
+              Responda até <strong className="text-white">{EVENTO.prazoTexto}</strong>, para as crianças entrarem no sorteio dos times.
+            </p>
+          )
+        )}
 
         <div className="mt-8">
           <FormularioResposta

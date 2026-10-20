@@ -1,9 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { JaRespondi } from "@/components/ja-respondi";
-import { EVENTO, agendaUrl, mapaUrl } from "@/lib/evento";
+import { EVENTO, agendaUrl, mapaUrl, prazoEncerrado } from "@/lib/evento";
+
+// Página estática, refeita de hora em hora para o aviso de prazo virar sozinho.
+export const revalidate = 3600;
 
 export default function Convite() {
+  const encerrado = prazoEncerrado();
   return (
     <main className="riscos min-h-screen pb-28">
       <div className="mx-auto max-w-md">
@@ -21,6 +25,20 @@ export default function Convite() {
 
         <div className="space-y-4 px-4 pt-5">
           <JaRespondi />
+
+          <p
+            className={`rounded-2xl border px-4 py-3 text-center ${
+              encerrado ? "border-campo-600 bg-campo-900 text-zinc-300" : "border-fla-500/60 bg-fla-500/10 text-white"
+            }`}
+          >
+            {encerrado ? (
+              <>O prazo de confirmação acabou ({EVENTO.prazoTexto}), mas ainda dá para avisar se você vem.</>
+            ) : (
+              <>
+                Confirme até <strong className="font-display text-xl tracking-wide text-fla-400">{EVENTO.prazoTexto}</strong>
+              </>
+            )}
+          </p>
 
           <section className="grid gap-3">
             <Info titulo="Quando">

@@ -14,6 +14,7 @@ const LINKS = [
   { href: "/admin/tabela", rotulo: "Tabela" },
   { href: "/admin/jogos", rotulo: "Jogos" },
   { href: "/torneio", rotulo: "Site ao vivo ↗" },
+  { href: "/torneio/tv", rotulo: "Modo TV ↗" },
 ];
 
 export default async function PainelLayout({ children }: { children: React.ReactNode }) {

@@ -13,7 +13,18 @@ export const EVENTO = {
   endereco: "Estrada da Posse, 755",
   cidade: "Rio de Janeiro",
   aviso: "O bar do campo estará disponível para compra de bebidas.",
+  /** Prazo para confirmar presença (vale até o fim do dia, horário de Brasília). */
+  confirmarAte: "2026-10-30",
+  prazoTexto: "sexta, 30/10",
 } as const;
+
+/**
+ * Depois do prazo o formulário continua aceitando respostas (sempre aparece alguém
+ * em cima da hora), mas avisa que a inscrição no torneio depende de vaga.
+ */
+export function prazoEncerrado(agora = new Date()): boolean {
+  return agora >= new Date(`${EVENTO.confirmarAte}T23:59:59-03:00`);
+}
 
 export const mapaUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
   `${EVENTO.local}, ${EVENTO.endereco}, ${EVENTO.cidade}`,
@@ -47,7 +58,7 @@ export function mensagemConvite(): string {
     `📅 ${EVENTO.diaSemana}, ${EVENTO.dataCurta} · ${EVENTO.horario}`,
     `📍 ${EVENTO.local} · ${EVENTO.endereco}`,
     ``,
-    `Confirme sua presença e inscreva as crianças que vão jogar:`,
+    `Confirme até ${EVENTO.prazoTexto} e inscreva as crianças que vão jogar:`,
     publicUrl(),
   ].join("\n");
 }
