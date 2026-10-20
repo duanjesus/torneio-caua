@@ -2,15 +2,19 @@ import Link from "next/link";
 import { CompartilharConvite } from "@/components/compartilhar-convite";
 import { SeloPresenca } from "@/components/selo-presenca";
 import { db } from "@/lib/db";
-import { mensagemConvite, publicUrl } from "@/lib/evento";
+import { EVENTO, mensagemConvite, prazoEncerrado, publicUrl } from "@/lib/evento";
+import { configTorneio } from "@/lib/torneio";
 
 export const dynamic = "force-dynamic";
 
 export default async function Resumo() {
-  const respostas = await db.resposta.findMany({
-    include: { criancas: true },
-    orderBy: { atualizadoEm: "desc" },
-  });
+  const [respostas, config, numTimes, jogos, lances] = await Promise.all([
+    db.resposta.findMany({ include: { criancas: true }, orderBy: { atualizadoEm: "desc" } }),
+    configTorneio(),
+    db.time.count(),
+    db.jogo.findMany({ select: { status: true } }),
+    db.lance.count(),
+  ]);
 
   const por = (p: string) => respostas.filter((r) => r.presenca === p);
   const pessoas = (lista: typeof respostas) => ({
@@ -21,6 +25,25 @@ export default async function Resumo() {
   const talvez = pessoas(por("TALVEZ"));
   const jogadores = respostas.flatMap((r) => r.criancas.filter((c) => c.joga).map((c) => ({ ...c, presenca: r.presenca })));
   const jogadoresSim = jogadores.filter((j) => j.presenca === "SIM").length;
+
+  const semNivel = respostas
+    .filter((r) => r.presenca === "SIM")
+    .flatMap((r) => r.criancas)
+    .filter((c) => c.joga && c.nivel === null).length;
+  const encerrados = jogos.filter((j) => j.status === "ENCERRADO").length;
+
+  // O roteiro até a festa; o primeiro passo não feito fica em destaque.
+  const passos: Passo[] = [
+    { feito: respostas.length > 0, titulo: "Mandar o convite", detalhe: respostas.length > 0 ? plural(respostas.length, "resposta") : "Use “Chamar a galera” aqui embaixo", href: "#convite" },
+    { feito: jogadores.length > 0 && semNivel === 0, titulo: "Dar o nível de cada jogador", detalhe: semNivel > 0 ? `Faltam ${semNivel}` : "Equilibra o sorteio", href: "/admin/jogadores" },
+    { feito: prazoEncerrado(), titulo: `Prazo de confirmação (${EVENTO.prazoTexto})`, detalhe: "Depois dele, sorteie os times", href: "/admin/convidados" },
+    { feito: numTimes > 0, titulo: "Sortear os times", detalhe: numTimes > 0 ? plural(numTimes, "time") : "Com os confirmados", href: "/admin/times" },
+    { feito: jogos.length > 0, titulo: "Gerar a tabela", detalhe: jogos.length > 0 ? plural(jogos.length, "jogo") : "Formato, campos e horários", href: "/admin/tabela" },
+    { feito: config.publicado, titulo: "Publicar no site", detalhe: "Libera /torneio e a TV", href: "/admin/tabela" },
+    { feito: jogos.length > 0 && encerrados === jogos.length, titulo: "Jogar!", detalhe: jogos.length > 0 ? `${encerrados} de ${jogos.length} jogos encerrados` : "Controle pelo celular", href: "/admin/jogos" },
+    { feito: lances > 0, titulo: "Lances", detalhe: lances > 0 ? plural(lances, "vídeo") : "Links dos replays", href: "/admin/lances" },
+  ];
+  const proximo = passos.findIndex((p) => !p.feito);
 
   const idades = new Map<number, number>();
   for (const j of jogadores) idades.set(j.idade, (idades.get(j.idade) ?? 0) + 1);
@@ -38,8 +61,37 @@ export default async function Resumo() {
         <Numero rotulo="Não vão" valor={por("NAO").length} detalhe={por("NAO").length === 1 ? "família" : "famílias"} />
       </section>
 
+      <section className="cartao p-5">
+        <h2 className="font-display text-2xl tracking-wide">Passo a passo</h2>
+        <ol className="mt-3 grid gap-2 sm:grid-cols-2">
+          {passos.map((p, i) => (
+            <li key={p.titulo}>
+              <Link
+                href={p.href}
+                className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors hover:bg-campo-800 ${
+                  i === proximo ? "border-fla-500 bg-fla-500/10" : "border-campo-700"
+                }`}
+              >
+                <span
+                  className={`flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                    p.feito ? "bg-emerald-500/20 text-emerald-400" : i === proximo ? "bg-fla-500 text-white" : "bg-campo-700 text-zinc-400"
+                  }`}
+                >
+                  {p.feito ? "✓" : i + 1}
+                </span>
+                <span className="min-w-0">
+                  <span className={`block text-sm font-semibold ${p.feito ? "text-zinc-400" : ""}`}>{p.titulo}</span>
+                  <span className="block truncate text-xs text-zinc-500">{p.detalhe}</span>
+                </span>
+                {i === proximo && <span className="ml-auto shrink-0 text-xs font-semibold text-fla-400">Agora</span>}
+              </Link>
+            </li>
+          ))}
+        </ol>
+      </section>
+
       <div className="grid gap-6 md:grid-cols-2">
-        <section className="cartao p-5">
+        <section id="convite" className="cartao scroll-mt-28 p-5">
           <h2 className="font-display text-2xl tracking-wide">Chamar a galera</h2>
           <p className="mt-1 text-sm text-zinc-400">
             Um link só para todo mundo. Mande no grupo ou direto para cada família.
@@ -90,6 +142,8 @@ export default async function Resumo() {
     </div>
   );
 }
+
+type Passo = { feito: boolean; titulo: string; detalhe: string; href: string };
 
 const plural = (n: number, palavra: string) => `${n} ${palavra}${n === 1 ? "" : "s"}`;
 

@@ -121,7 +121,12 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
   return (
     <form onSubmit={enviar} noValidate className="space-y-6">
       <fieldset>
-        <legend className="rotulo">{admin ? "Presença" : "Você vem?"}</legend>
+        <legend className="mb-3 flex items-center gap-3">
+          <span className="font-display flex size-7 shrink-0 items-center justify-center rounded-full bg-fla-500 text-base leading-none text-white">
+            1
+          </span>
+          <span className="font-display text-2xl leading-none tracking-wide">{admin ? "Presença" : "Você vem?"}</span>
+        </legend>
         <div className="grid grid-cols-3 gap-2">
           {OPCOES.map((o) => {
             const ativo = presenca === o.valor;
@@ -146,6 +151,7 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
         {erros.presenca && <p className="erro">{erros.presenca}</p>}
       </fieldset>
 
+      <Etapa n={2} titulo={admin ? "Responsável" : "Seus dados"} />
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="responsavel" className="rotulo">
@@ -199,8 +205,8 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
       {vem && (
         <section className="space-y-3">
           <div>
-            <h2 className="font-display text-2xl tracking-wide">Crianças</h2>
-            <p className="text-sm text-zinc-400">
+            <Etapa n={3} titulo="Crianças" />
+            <p className="mt-1 text-sm text-zinc-400">
               Liste as crianças que vêm. As marcadas com <strong className="text-zinc-200">“vai jogar”</strong> entram
               no torneio do {EVENTO.aniversariante}.
             </p>
@@ -293,7 +299,8 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
       )}
 
       <div>
-        <label htmlFor="recado" className="rotulo">
+        <Etapa n={vem ? 4 : 3} titulo="Recado" />
+        <label htmlFor="recado" className="rotulo mt-3">
           Recado para o {EVENTO.aniversariante} <span className="text-zinc-500">(opcional)</span>
         </label>
         <textarea
@@ -367,6 +374,18 @@ function Contador(props: { rotuloId: string; valor: number; min: number; max: nu
       >
         +
       </button>
+    </div>
+  );
+}
+
+/** Cabeçalho numerado de cada parte do formulário. */
+function Etapa({ n, titulo }: { n: number; titulo: string }) {
+  return (
+    <div className="flex items-center gap-3 border-t border-campo-700 pt-5">
+      <span className="font-display flex size-7 shrink-0 items-center justify-center rounded-full bg-fla-500 text-base leading-none text-white">
+        {n}
+      </span>
+      <h2 className="font-display text-2xl leading-none tracking-wide">{titulo}</h2>
     </div>
   );
 }

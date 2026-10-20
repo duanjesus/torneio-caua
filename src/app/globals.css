@@ -34,6 +34,50 @@ body {
   );
 }
 
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(0.6vw);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes gol-entra {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) skewX(-6deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08) skewX(-6deg);
+  }
+  100% {
+    transform: scale(1) skewX(-6deg);
+  }
+}
+
+@keyframes gol-fundo {
+  0%,
+  100% {
+    background-color: rgb(225 6 0 / 0.92);
+  }
+  50% {
+    background-color: rgb(150 0 0 / 0.95);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
 /* Título com cara de pincel: condensado e inclinado */
 .titulo-pincel {
   font-family: var(--font-display);

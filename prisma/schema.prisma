@@ -124,6 +124,21 @@ model Jogo {
   iniciadoEm  DateTime?
   encerradoEm DateTime?
   gols        Gol[]
+  lances      Lance[]
+}
+
+/// Vídeo de um lance (link do YouTube não listado, do Lance Replay etc.). O vídeo não é guardado aqui.
+model Lance {
+  id       Int      @id @default(autoincrement())
+  url      String
+  titulo   String?
+  jogoId   Int?
+  jogo     Jogo?    @relation(fields: [jogoId], references: [id], onDelete: SetNull)
+  golId    Int?
+  gol      Gol?     @relation(fields: [golId], references: [id], onDelete: SetNull)
+  criadoEm DateTime @default(now())
+
+  @@index([jogoId])
 }
 
 /// Um gol. Conta para `timeId`; `criancaId` é quem fez (nulo = sem autor anotado).
@@ -138,6 +153,7 @@ model Gol {
   crianca   Crianca? @relation(fields: [criancaId], references: [id], onDelete: SetNull)
   contra    Boolean  @default(false)
   criadoEm  DateTime @default(now())
+  lances    Lance[]
 
   @@index([jogoId])
 }

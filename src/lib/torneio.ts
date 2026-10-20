@@ -8,7 +8,7 @@ export async function configTorneio() {
 const incluirJogo = {
   gols: {
     orderBy: { criadoEm: "asc" as const },
-    include: { crianca: { select: { id: true, nome: true } } },
+    include: { crianca: { select: { id: true, nome: true, foto: true } } },
   },
 };
 

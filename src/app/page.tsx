@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AvisoEquipamento } from "@/components/aviso-equipamento";
+import { Contagem } from "@/components/contagem";
+import { IconeCalendario, IconeCopo, IconeLocal, IconeRelogio } from "@/components/icones";
 import { JaRespondi } from "@/components/ja-respondi";
 import { EVENTO, agendaUrl, mapaUrl, prazoEncerrado } from "@/lib/evento";
 
@@ -10,7 +12,7 @@ export const revalidate = 3600;
 export default function Convite() {
   const encerrado = prazoEncerrado();
   return (
-    <main className="riscos min-h-screen pb-28">
+    <main className="riscos min-h-screen pb-36">
       <div className="mx-auto max-w-md">
         <h1 className="sr-only">
           Você foi convocado! {EVENTO.titulo}, {EVENTO.idade} anos
@@ -24,40 +26,25 @@ export default function Convite() {
           className="h-auto w-full sm:mt-6 sm:rounded-2xl"
         />
 
-        <div className="space-y-4 px-4 pt-5">
+        <div className="space-y-4 px-4 pt-4">
+          <Contagem inicio={`${EVENTO.data}T${EVENTO.inicio}:00-03:00`} fim={`${EVENTO.data}T${EVENTO.fim}:00-03:00`} />
           <JaRespondi />
 
-          <p
-            className={`rounded-2xl border px-4 py-3 text-center ${
-              encerrado ? "border-campo-600 bg-campo-900 text-zinc-300" : "border-fla-500/60 bg-fla-500/10 text-white"
-            }`}
-          >
-            {encerrado ? (
-              <>O prazo de confirmação acabou ({EVENTO.prazoTexto}), mas ainda dá para avisar se você vem.</>
-            ) : (
-              <>
-                Confirme até <strong className="font-display text-xl tracking-wide text-fla-400">{EVENTO.prazoTexto}</strong>
-              </>
-            )}
-          </p>
-
-          <section className="grid gap-3">
-            <Info titulo="Quando">
-              <p className="text-lg font-semibold">
-                {EVENTO.diaSemana}, {EVENTO.dataCurta}
-              </p>
-              <p className="text-zinc-400">{EVENTO.horario}</p>
-              <a href={agendaUrl()} target="_blank" rel="noreferrer" className="btn-pequeno mt-3">
-                Adicionar à agenda
+          <section className="cartao overflow-hidden" aria-label="Quando e onde">
+            <ul className="divide-y divide-campo-700">
+              <Linha icone={<IconeCalendario />} titulo={`${EVENTO.diaSemana}, ${EVENTO.dataCurta}`} detalhe="Aniversário de 8 anos do Cauã" />
+              <Linha icone={<IconeRelogio />} titulo={EVENTO.horario} detalhe="Torneio e festa" />
+              <Linha icone={<IconeLocal />} titulo={EVENTO.local} detalhe={EVENTO.endereco} />
+              <Linha icone={<IconeCopo />} titulo="Bar no campo" detalhe="Bebidas à venda no local" />
+            </ul>
+            <div className="grid grid-cols-2 gap-px border-t border-campo-700 bg-campo-700">
+              <a href={agendaUrl()} target="_blank" rel="noreferrer" className="bg-campo-900 py-3 text-center text-sm font-semibold hover:bg-campo-800">
+                Salvar na agenda
               </a>
-            </Info>
-            <Info titulo="Onde">
-              <p className="text-lg font-semibold">{EVENTO.local}</p>
-              <p className="text-zinc-400">{EVENTO.endereco}</p>
-              <a href={mapaUrl} target="_blank" rel="noreferrer" className="btn-pequeno mt-3">
-                Abrir no mapa
+              <a href={mapaUrl} target="_blank" rel="noreferrer" className="bg-campo-900 py-3 text-center text-sm font-semibold hover:bg-campo-800">
+                Como chegar
               </a>
-            </Info>
+            </div>
           </section>
 
           <AvisoEquipamento grande />
@@ -67,11 +54,11 @@ export default function Convite() {
             <ol className="mt-3 space-y-3 text-zinc-300">
               <Passo n={1}>Confirme quem da sua família vem para a festa.</Passo>
               <Passo n={2}>
-                Marque as crianças que vão <strong className="text-white">entrar em campo</strong>: elas ficam
-                inscritas no torneio.
+                Marque as crianças que vão <strong className="text-white">entrar em campo</strong> e, se quiser, mande uma foto
+                delas para a escalação.
               </Passo>
               <Passo n={3}>
-                No dia, os times, a tabela e os placares aparecem{" "}
+                No dia, os times, a tabela, os placares e os lances aparecem{" "}
                 <Link href="/torneio" className="font-medium text-fla-400 underline-offset-2 hover:underline">
                   na página do torneio
                 </Link>
@@ -79,13 +66,20 @@ export default function Convite() {
               </Passo>
             </ol>
           </section>
-
-          <p className="px-1 text-center text-sm text-zinc-500">{EVENTO.aviso}</p>
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 border-t border-campo-700 bg-campo-950/90 px-4 py-3 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-campo-700 bg-campo-950/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur">
         <div className="mx-auto max-w-md">
+          <p className={`mb-2 text-center text-xs ${encerrado ? "text-zinc-400" : "text-zinc-300"}`}>
+            {encerrado ? (
+              <>O prazo acabou ({EVENTO.prazoTexto}), mas ainda dá para avisar.</>
+            ) : (
+              <>
+                Confirme até <strong className="text-white">{EVENTO.prazoTexto}</strong>
+              </>
+            )}
+          </p>
           <Link href="/confirmar" className="btn-primario w-full text-lg">
             Confirmar presença
           </Link>
@@ -95,12 +89,15 @@ export default function Convite() {
   );
 }
 
-function Info({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+function Linha({ icone, titulo, detalhe }: { icone: React.ReactNode; titulo: string; detalhe: string }) {
   return (
-    <div className="cartao p-5">
-      <h2 className="font-display text-xl tracking-wider text-fla-500">{titulo}</h2>
-      <div className="mt-1">{children}</div>
-    </div>
+    <li className="flex items-center gap-4 px-5 py-3.5">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-fla-500/15 text-fla-400">{icone}</span>
+      <span className="min-w-0">
+        <span className="block font-semibold">{titulo}</span>
+        <span className="block text-sm text-zinc-400">{detalhe}</span>
+      </span>
+    </li>
   );
 }
 

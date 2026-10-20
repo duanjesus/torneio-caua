@@ -25,7 +25,6 @@ function Jogador({ j, cor, tv }: { j: JogadorEscalacao; cor: string; tv: boolean
           tv ? "text-[1vw]" : "text-[11px] leading-tight"
         }`}
       >
-        {j.goleiro && "🧤 "}
         {nomePublico(j.nome)}
       </span>
     </div>

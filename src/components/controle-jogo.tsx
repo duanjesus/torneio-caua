@@ -26,11 +26,14 @@ type Jogo = {
 };
 
 function Cronometro({ desde, duracao }: { desde: string; duracao: number }) {
-  const [agora, setAgora] = useState(() => Date.now());
+  // Começa vazio: a hora só existe no navegador (no servidor daria outro valor e a página "piscaria").
+  const [agora, setAgora] = useState<number | null>(null);
   useEffect(() => {
+    setAgora(Date.now());
     const t = setInterval(() => setAgora(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
+  if (agora === null) return <span className="font-display tabular-nums text-zinc-600">--:--</span>;
   const seg = Math.max(0, Math.floor((agora - new Date(desde).getTime()) / 1000));
   const passou = seg >= duracao * 60;
   return (

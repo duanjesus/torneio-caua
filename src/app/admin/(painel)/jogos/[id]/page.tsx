@@ -60,6 +60,11 @@ export default async function Jogo({ params }: { params: Promise<{ id: string }>
         timeB={lado(jogo.timeBId, jogo.fonteB)}
         duracao={t.config.duracao}
       />
+      {jogo.status !== "AGENDADO" && (
+        <Link href={`/admin/lances?jogo=${jogo.id}`} className="btn-secundario w-full text-sm">
+          🎬 Adicionar vídeo de um lance deste jogo
+        </Link>
+      )}
     </div>
   );
 }

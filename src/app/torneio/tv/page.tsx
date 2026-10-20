@@ -3,10 +3,12 @@ import QRCode from "qrcode";
 import { AtualizarSozinho } from "@/components/atualizar-sozinho";
 import { CampoInteiro } from "@/components/escalacao";
 import { CorTime, rotuloJogo } from "@/components/torneio-ui";
-import { CronometroTv, Relogio, Rotacao, TelaCheia } from "@/components/tv";
+import { CelebracaoGol, CronometroTv, Relogio, Rotacao, TelaCheia, type GolRecente } from "@/components/tv";
 import { EVENTO, publicUrl } from "@/lib/evento";
+import { carregarLances, type LanceView } from "@/lib/lances";
 import { nomePublico } from "@/lib/resposta";
 import { ROTULO_FASE, rotuloFonte, type Fase } from "@/lib/tabela";
+import { embedYoutube } from "@/lib/video";
 import { carregarTorneio, type DadosTorneio, type JogoCompleto } from "@/lib/torneio";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +19,7 @@ export const metadata = { title: `TV · ${EVENTO.titulo}`, robots: { index: fals
 type Times = DadosTorneio["timePorId"];
 
 export default async function ModoTv() {
-  const t = await carregarTorneio();
+  const [t, lances] = await Promise.all([carregarTorneio(), carregarLances()]);
   const qr = await QRCode.toString(`${publicUrl()}/torneio`, {
     type: "svg",
     margin: 1,
@@ -39,7 +41,8 @@ export default async function ModoTv() {
         </div>
       </header>
 
-      {t.config.publicado ? <Placar t={t} qr={qr} /> : <EmBreve qr={qr} />}
+      {t.config.publicado ? <Placar t={t} qr={qr} lances={lances} /> : <EmBreve qr={qr} />}
+      {t.config.publicado && <CelebracaoGol gol={golMaisRecente(t)} />}
     </main>
   );
 }
@@ -56,7 +59,26 @@ function EmBreve({ qr }: { qr: string }) {
   );
 }
 
-function Placar({ t, qr }: { t: DadosTorneio; qr: string }) {
+/** O último gol registrado (maior id), já com o placar do jogo, para a comemoração na TV. */
+function golMaisRecente(t: DadosTorneio): GolRecente | null {
+  let achado: { jogo: JogoCompleto; gol: JogoCompleto["gols"][number] } | null = null;
+  for (const jogo of t.jogos) for (const gol of jogo.gols) if (!achado || gol.id > achado.gol.id) achado = { jogo, gol };
+  if (!achado) return null;
+  const { jogo, gol } = achado;
+  const time = t.timePorId.get(gol.timeId);
+  const nome = (id: number | null) => (id ? (t.timePorId.get(id)?.nome ?? "?") : "?");
+  return {
+    id: gol.id,
+    autor: gol.crianca ? nomePublico(gol.crianca.nome) : null,
+    foto: gol.crianca?.foto ?? null,
+    contra: gol.contra,
+    time: time?.nome ?? "",
+    cor: time?.cor ?? "#e10600",
+    placar: `${nome(jogo.timeAId)} ${jogo.golsA} x ${jogo.golsB} ${nome(jogo.timeBId)}`,
+  };
+}
+
+function Placar({ t, qr, lances }: { t: DadosTorneio; qr: string; lances: LanceView[] }) {
   const aoVivo = t.jogos.filter((j) => j.status === "AO_VIVO");
   const proximos = t.jogos.filter((j) => j.status === "AGENDADO");
   const encerrados = t.jogos.filter((j) => j.status === "ENCERRADO").reverse();
@@ -64,7 +86,10 @@ function Placar({ t, qr }: { t: DadosTorneio; qr: string }) {
   const campeao = t.campeaoId ? t.timePorId.get(t.campeaoId) : null;
 
   // Painéis da direita: só entra o que tem conteúdo.
-  const paineis: { titulo: string; conteudo: React.ReactNode }[] = [];
+  const paineis: { titulo: string; conteudo: React.ReactNode; segundos?: number }[] = [];
+  // Replay: o lance mais recente que dá para tocar na TV (YouTube), por 30 s.
+  const replay = lances.find((l) => l.video.tipo === "youtube");
+  if (replay) paineis.push({ titulo: "Replay", conteudo: <PainelReplay lance={replay} />, segundos: 30 });
   // Escalação do jogo em destaque (o que está rolando ou o próximo), quando os dois times já são conhecidos.
   const destaque = aoVivo[0] ?? proximos[0];
   const timeA = destaque?.timeAId ? t.timePorId.get(destaque.timeAId) : null;
@@ -120,7 +145,7 @@ function Placar({ t, qr }: { t: DadosTorneio; qr: string }) {
       </section>
 
       <section className="min-w-0 flex-1">
-        <Rotacao titulos={paineis.map((p) => p.titulo)} segundos={12}>
+        <Rotacao titulos={paineis.map((p) => p.titulo)} duracoes={paineis.map((p) => p.segundos ?? 12)}>
           {paineis.map((p) => (
             <div key={p.titulo} className="h-full">
               {p.conteudo}
@@ -396,6 +421,27 @@ function PainelTimes({ t }: { t: DadosTorneio }) {
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function PainelReplay({ lance }: { lance: LanceView }) {
+  if (lance.video.tipo !== "youtube") return null;
+  return (
+    <div className="flex h-full flex-col">
+      <div className="mb-[1vw] flex items-baseline gap-[1vw]">
+        <h2 className="font-display text-[2.6vw] leading-none tracking-wide text-fla-500">Replay</h2>
+        <p className="truncate text-[1.6vw] font-semibold">{lance.titulo}</p>
+        {lance.subtitulo && <p className="truncate text-[1.2vw] text-zinc-400">{lance.subtitulo}</p>}
+      </div>
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-[1vw] bg-black">
+        <iframe
+          src={embedYoutube(lance.video.id, { tv: true })}
+          title={lance.titulo}
+          allow="autoplay; encrypted-media"
+          className="absolute inset-0 h-full w-full"
+        />
       </div>
     </div>
   );
