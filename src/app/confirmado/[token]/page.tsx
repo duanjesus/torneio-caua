@@ -68,7 +68,11 @@ export default async function Confirmado({ params }: { params: Promise<{ token: 
             <strong className="text-white">
               {jogadores.length === 1 ? "1 criança inscrita" : `${jogadores.length} crianças inscritas`}
             </strong>{" "}
-            no torneio. Os times são sorteados antes da festa e aparecem aqui no dia.
+            no torneio. Os times são sorteados antes da festa e aparecem{" "}
+            <Link href="/torneio" className="text-fla-400 hover:underline">
+              na página do torneio
+            </Link>
+            .
           </p>
         )}
 

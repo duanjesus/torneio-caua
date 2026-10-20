@@ -42,6 +42,98 @@ model Crianca {
   /// 1 a 3, definido só pelo admin, para equilibrar os times no sorteio.
   nivel      Int?
   ordem      Int      @default(0)
+  timeId     Int?
+  time       Time?    @relation(fields: [timeId], references: [id], onDelete: SetNull)
+  gols       Gol[]
 
   @@index([respostaId])
+  @@index([timeId])
+}
+
+enum Formato {
+  GRUPOS
+  MATA
+}
+
+enum Fase {
+  GRUPOS
+  OITAVAS
+  QUARTAS
+  SEMI
+  TERCEIRO
+  FINAL
+}
+
+enum StatusJogo {
+  AGENDADO
+  AO_VIVO
+  ENCERRADO
+}
+
+/// Configuração do campeonato. Linha única (id = 1).
+model Torneio {
+  id            Int     @id @default(1)
+  formato       Formato @default(GRUPOS)
+  numGrupos     Int     @default(2)
+  classificados Int     @default(2)
+  terceiroLugar Boolean @default(true)
+  campos        Int     @default(1)
+  duracao       Int     @default(12)
+  intervalo     Int     @default(3)
+  inicio        String  @default("11:30")
+  /// Mostra times e tabela na página pública. Antes disso ela diz "em breve".
+  publicado     Boolean @default(false)
+}
+
+model Time {
+  id        Int       @id @default(autoincrement())
+  nome      String
+  cor       String
+  ordem     Int       @default(0)
+  /// Letra do grupo (A, B...) quando o formato tem grupos.
+  grupo     String?
+  jogadores Crianca[]
+  jogosA    Jogo[]    @relation("timeA")
+  jogosB    Jogo[]    @relation("timeB")
+  gols      Gol[]
+}
+
+model Jogo {
+  id          Int        @id @default(autoincrement())
+  numero      Int        @unique
+  fase        Fase
+  grupo       String?
+  rodada      Int        @default(1)
+  campo       Int        @default(1)
+  /// "HH:MM" previsto.
+  horario     String
+  /// De onde vem cada time (ver src/lib/tabela.ts): T:id, G:A:1, V:7, D:7.
+  fonteA      String?
+  fonteB      String?
+  timeAId     Int?
+  timeA       Time?      @relation("timeA", fields: [timeAId], references: [id], onDelete: SetNull)
+  timeBId     Int?
+  timeB       Time?      @relation("timeB", fields: [timeBId], references: [id], onDelete: SetNull)
+  penaltisA   Int?
+  penaltisB   Int?
+  status      StatusJogo @default(AGENDADO)
+  iniciadoEm  DateTime?
+  encerradoEm DateTime?
+  gols        Gol[]
+}
+
+/// Um gol. Conta para `timeId`; `criancaId` é quem fez (nulo = sem autor anotado).
+/// Gol contra conta para `timeId` mas não entra na artilharia.
+model Gol {
+  id        Int      @id @default(autoincrement())
+  jogoId    Int
+  jogo      Jogo     @relation(fields: [jogoId], references: [id], onDelete: Cascade)
+  timeId    Int
+  time      Time     @relation(fields: [timeId], references: [id], onDelete: Cascade)
+  criancaId Int?
+  crianca   Crianca? @relation(fields: [criancaId], references: [id], onDelete: SetNull)
+  contra    Boolean  @default(false)
+  criadoEm  DateTime @default(now())
+
+  @@index([jogoId])
 }

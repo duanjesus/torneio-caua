@@ -10,6 +10,10 @@ const LINKS = [
   { href: "/admin", rotulo: "Resumo" },
   { href: "/admin/convidados", rotulo: "Convidados" },
   { href: "/admin/jogadores", rotulo: "Jogadores" },
+  { href: "/admin/times", rotulo: "Times" },
+  { href: "/admin/tabela", rotulo: "Tabela" },
+  { href: "/admin/jogos", rotulo: "Jogos" },
+  { href: "/torneio", rotulo: "Site ao vivo ↗" },
 ];
 
 export default async function PainelLayout({ children }: { children: React.ReactNode }) {
@@ -21,9 +25,9 @@ export default async function PainelLayout({ children }: { children: React.React
           <Link href="/admin" className="font-display shrink-0 text-2xl tracking-wide">
             <span className="text-fla-500">Torneio</span> do {EVENTO.aniversariante}
           </Link>
-          <nav className="-mx-3 order-last flex w-full gap-1 overflow-x-auto text-sm font-medium sm:order-none sm:mx-0 sm:w-auto sm:flex-1">
+          <nav className="-mx-3 order-last flex w-full gap-1 overflow-x-auto text-sm font-medium [scrollbar-width:none] sm:order-none sm:mx-0 sm:w-auto sm:flex-1 [&::-webkit-scrollbar]:hidden">
             {LINKS.map((l) => (
-              <Link key={l.href} href={l.href} className="rounded-lg px-3 py-2 text-zinc-300 hover:bg-campo-800 hover:text-white">
+              <Link key={l.href} href={l.href} className="shrink-0 rounded-lg px-3 py-2 text-zinc-300 hover:bg-campo-800 hover:text-white">
                 {l.rotulo}
               </Link>
             ))}

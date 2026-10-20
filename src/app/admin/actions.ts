@@ -55,6 +55,6 @@ export async function atualizarJogador(criancaId: number, campos: { nivel?: numb
 
 export async function tirarDoTorneio(criancaId: number): Promise<void> {
   await requireAdmin();
-  await db.crianca.updateMany({ where: { id: criancaId }, data: { joga: false, goleiro: false } });
+  await db.crianca.updateMany({ where: { id: criancaId }, data: { joga: false, goleiro: false, timeId: null } });
   revalidatePath("/admin", "layout");
 }

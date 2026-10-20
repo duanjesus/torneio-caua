@@ -3,7 +3,9 @@
 Convite, confirmação de presença e campeonato da festa de 8 anos do Cauã.
 
 - **Convidados**: abrem o link, confirmam quem vem e inscrevem as crianças que vão jogar.
-- **Admin** (`/admin`): acompanha as respostas, organiza jogadores e (Fase 2) times, tabela e placares.
+- **Admin** (`/admin`): acompanha as respostas, organiza jogadores, sorteia times, gera a tabela
+  e controla os jogos (gols, pênaltis) pelo celular.
+- **Torneio ao vivo** (`/torneio`): classificação, chave, artilharia e campeão, atualizando sozinho.
 
 Plano e roteiro: [docs/PLANO.md](docs/PLANO.md).
 

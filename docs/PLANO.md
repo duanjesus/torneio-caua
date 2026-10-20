@@ -23,18 +23,26 @@ Festa de 8 anos do Cauã com campeonato entre as crianças.
 - `/admin/convidados`: lista com filtro e busca, adicionar/editar/excluir, planilha CSV.
 - `/admin/jogadores`: inscritos, nível 1–3 (só o admin vê) e goleiro, tirar do torneio.
 
-## Fase 2: o campeonato (até ~28/10)
+## Fase 2: o campeonato ✅
 
 Só o admin edita; o público vê em `/torneio`.
 
-1. **Times**: quantidade de times e jogadores por time; sorteio equilibrado por nível,
-   idade e goleiro; ajuste manual; nome e cor do colete de cada time.
-2. **Formato**: grupos + mata-mata, pontos corridos ou só mata-mata.
-   Tabela com horários entre 11h e 16h, a partir de campos disponíveis e duração do jogo.
-3. **Jogos**: iniciar/encerrar, gol com autor, pênaltis no empate; o chaveamento avança sozinho.
-4. **Classificação**: pontos, saldo, gols pró; artilharia.
-5. **Página pública ao vivo** (`/torneio`): jogo agora, próximos, tabela, chave, artilheiros,
-   campeão. Atualiza sozinha (polling ou SSE), boa para TV no campo.
+1. **Times** (`/admin/times`): sorteio com os jogadores confirmados; espalha goleiros e
+   equilibra por nível e idade (`src/lib/sorteio.ts`). Renomear, trocar cor do colete,
+   mover jogador; quem confirmou depois aparece em "Sem time".
+2. **Tabela** (`/admin/tabela`): grupos (1, 2 ou 4; 1 grupo = pontos corridos) com 0/1/2/4
+   classificados, ou mata-mata direto (com folga quando não fecha potência de 2).
+   3º lugar opcional. Horários a partir de início, campos, duração e intervalo; a prévia
+   mostra quantos jogos e a hora de término, e avisa se passar das 16h.
+   Os grupos são sorteados ao gerar. Botão "Publicar no site" libera `/torneio`.
+3. **Jogos** (`/admin/jogos`): começar, gol com autor (ou sem autor, ou contra), apagar gol,
+   encerrar (pênaltis obrigatórios em empate no mata-mata), reabrir para corrigir.
+   O placar sai dos gols registrados; a chave se preenche sozinha (`src/lib/campeonato.ts`).
+4. **Página pública** (`/torneio`): campeão, ao vivo, próximos, classificação, chave,
+   artilharia, resultados e times (nomes abreviados). Atualiza a cada 10 s.
+
+Como as fontes da chave funcionam: cada lado do jogo guarda de onde vem o time
+(`T:id`, `G:A:1`, `V:7`, `D:7`); jogos ainda não iniciados são recalculados a cada placar.
 
 ## Depois
 

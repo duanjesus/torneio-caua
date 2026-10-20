@@ -46,7 +46,8 @@ export async function gravarResposta(
     for (const [ordem, { id, ...c }] of valor.criancas.entries()) {
       if (id !== undefined && idsAtuais.has(id)) {
         mantidos.add(id);
-        await tx.crianca.update({ where: { id }, data: { ...c, ordem } });
+        // Quem deixou de jogar sai do time em que estava.
+        await tx.crianca.update({ where: { id }, data: { ...c, ordem, ...(!c.joga && { timeId: null }) } });
       } else {
         await tx.crianca.create({ data: { ...c, ordem, respostaId } });
       }

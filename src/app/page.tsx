@@ -49,7 +49,13 @@ export default function Convite() {
                 Marque as crianças que vão <strong className="text-white">entrar em campo</strong>: elas ficam
                 inscritas no torneio.
               </Passo>
-              <Passo n={3}>No dia, os times, a tabela e os placares aparecem aqui, ao vivo.</Passo>
+              <Passo n={3}>
+                No dia, os times, a tabela e os placares aparecem{" "}
+                <Link href="/torneio" className="font-medium text-fla-400 underline-offset-2 hover:underline">
+                  na página do torneio
+                </Link>
+                , ao vivo.
+              </Passo>
             </ol>
           </section>
 
