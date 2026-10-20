@@ -7,6 +7,9 @@ Convite, confirmação de presença e campeonato da festa de 8 anos do Cauã.
   e controla os jogos (gols, pênaltis) pelo celular.
 - **Torneio ao vivo** (`/torneio`): classificação, chave, artilharia e campeão, atualizando sozinho.
 
+No ar em **https://torneio-caua.vercel.app**. Cada envio para a branch `main` publica sozinho na Vercel
+(banco Postgres na Neon; as migrações rodam no build).
+
 Plano e roteiro: [docs/PLANO.md](docs/PLANO.md).
 
 ## Rodar local
