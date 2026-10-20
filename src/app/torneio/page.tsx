@@ -23,7 +23,7 @@ export default async function TorneioPublico() {
     return (
       <main className="riscos flex min-h-screen flex-col items-center justify-center gap-5 px-4 text-center">
         <AtualizarSozinho segundos={30} />
-        <Image src="/escudo.jpg" alt="" width={160} height={160} className="size-36 rounded-2xl" />
+        <Image src="/escudo.png" alt="" width={160} height={160} className="size-36" />
         <h1 className="titulo-pincel text-6xl leading-none text-fla-500">Em breve</h1>
         <p className="max-w-sm text-zinc-300">
           Os times e a tabela do {EVENTO.titulo} aparecem aqui no dia. Já são{" "}
@@ -57,7 +57,7 @@ export default async function TorneioPublico() {
     <main className="riscos min-h-screen pb-16">
       <AtualizarSozinho segundos={10} />
       <header className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-4">
-        <Image src="/escudo.jpg" alt="" width={56} height={56} className="size-14 rounded-xl" priority />
+        <Image src="/escudo.png" alt="" width={56} height={56} className="size-14" priority />
         <div className="min-w-0 flex-1">
           <h1 className="font-display truncate text-3xl leading-none tracking-wide">
             <span className="text-fla-500">Torneio</span> do {EVENTO.aniversariante}

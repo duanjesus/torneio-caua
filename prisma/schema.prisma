@@ -27,6 +27,9 @@ model Resposta {
   adultos         Int       @default(0)
   recado          String?
   criadoPeloAdmin Boolean   @default(false)
+  /// Quando o admin abriu o WhatsApp com cada lembrete (para ir um por um sem repetir).
+  lembreteTalvezEm  DateTime?
+  lembreteVesperaEm DateTime?
   criadoEm        DateTime  @default(now())
   atualizadoEm    DateTime  @updatedAt
   criancas        Crianca[]

@@ -29,7 +29,7 @@ export default async function Confirmado({ params }: { params: Promise<{ token: 
       <SalvarToken token={r.token} />
       <div className="mx-auto max-w-xl space-y-5 px-4 pb-16 pt-8">
         <div className="text-center">
-          <Image src="/escudo.jpg" alt="" width={140} height={140} className="mx-auto size-32 rounded-2xl" />
+          <Image src="/escudo.png" alt="" width={140} height={140} className="mx-auto size-32" />
           <h1 className="titulo-pincel mt-4 text-6xl leading-none text-fla-500">{cab.titulo}</h1>
           <p className="mt-3 text-zinc-300">{cab.texto}</p>
         </div>

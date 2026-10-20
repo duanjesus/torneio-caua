@@ -10,6 +10,7 @@ const GRUPOS = [
     links: [
       { href: "/admin", rotulo: "Resumo" },
       { href: "/admin/convidados", rotulo: "Convidados" },
+      { href: "/admin/lembretes", rotulo: "Lembretes" },
       { href: "/admin/jogadores", rotulo: "Jogadores" },
     ],
   },

@@ -31,14 +31,18 @@ export default async function Resumo() {
     .flatMap((r) => r.criancas)
     .filter((c) => c.joga && c.nivel === null).length;
   const encerrados = jogos.filter((j) => j.status === "ENCERRADO").length;
+  const talvezSemLembrete = por("TALVEZ").filter((r) => !r.lembreteTalvezEm).length;
+  const simSemLembrete = por("SIM").filter((r) => !r.lembreteVesperaEm).length;
 
   // O roteiro até a festa; o primeiro passo não feito fica em destaque.
   const passos: Passo[] = [
     { feito: respostas.length > 0, titulo: "Mandar o convite", detalhe: respostas.length > 0 ? plural(respostas.length, "resposta") : "Use “Chamar a galera” aqui embaixo", href: "#convite" },
     { feito: jogadores.length > 0 && semNivel === 0, titulo: "Dar o nível de cada jogador", detalhe: semNivel > 0 ? `Faltam ${semNivel}` : "Equilibra o sorteio", href: "/admin/jogadores" },
+    { feito: respostas.length > 0 && talvezSemLembrete === 0, titulo: "Lembrar quem marcou talvez", detalhe: talvezSemLembrete > 0 ? `Faltam ${talvezSemLembrete}` : "Antes do prazo", href: "/admin/lembretes" },
     { feito: prazoEncerrado(), titulo: `Prazo de confirmação (${EVENTO.prazoTexto})`, detalhe: "Depois dele, sorteie os times", href: "/admin/convidados" },
     { feito: numTimes > 0, titulo: "Sortear os times", detalhe: numTimes > 0 ? plural(numTimes, "time") : "Com os confirmados", href: "/admin/times" },
     { feito: jogos.length > 0, titulo: "Gerar a tabela", detalhe: jogos.length > 0 ? plural(jogos.length, "jogo") : "Formato, campos e horários", href: "/admin/tabela" },
+    { feito: por("SIM").length > 0 && simSemLembrete === 0, titulo: "Lembrete da véspera", detalhe: simSemLembrete > 0 ? `Sábado, para ${plural(simSemLembrete, "família")}` : "Horário, local e chuteira", href: "/admin/lembretes?tipo=vespera" },
     { feito: config.publicado, titulo: "Publicar no site", detalhe: "Libera /torneio e a TV", href: "/admin/tabela" },
     { feito: jogos.length > 0 && encerrados === jogos.length, titulo: "Jogar!", detalhe: jogos.length > 0 ? `${encerrados} de ${jogos.length} jogos encerrados` : "Controle pelo celular", href: "/admin/jogos" },
     { feito: lances > 0, titulo: "Lances", detalhe: lances > 0 ? plural(lances, "vídeo") : "Links dos replays", href: "/admin/lances" },

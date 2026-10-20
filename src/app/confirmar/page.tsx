@@ -22,7 +22,7 @@ export default async function Confirmar({ searchParams }: { searchParams: Promis
           ← Voltar ao convite
         </Link>
         <header className="mt-4 flex items-center gap-4">
-          <Image src="/escudo.jpg" alt="" width={88} height={88} className="size-20 shrink-0 rounded-xl" />
+          <Image src="/escudo.png" alt="" width={88} height={88} className="size-20 shrink-0" />
           <div>
             <p className="font-display text-lg tracking-widest text-zinc-400">
               {EVENTO.diaSemana} {EVENTO.dataCurta} · {EVENTO.horario}

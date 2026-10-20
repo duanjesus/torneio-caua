@@ -53,6 +53,17 @@ export async function atualizarJogador(criancaId: number, campos: { nivel?: numb
   revalidatePath("/admin", "layout");
 }
 
+/** Registra que o lembrete foi aberto no WhatsApp (ou desfaz, com `enviado = false`). */
+export async function marcarLembrete(respostaId: number, tipo: "talvez" | "vespera", enviado = true): Promise<void> {
+  await requireAdmin();
+  const quando = enviado ? new Date() : null;
+  await db.resposta.updateMany({
+    where: { id: respostaId },
+    data: tipo === "talvez" ? { lembreteTalvezEm: quando } : { lembreteVesperaEm: quando },
+  });
+  revalidatePath("/admin/lembretes");
+}
+
 /** Admin põe ou troca a foto (ex.: quando a família mandou pelo WhatsApp). */
 export async function definirFoto(criancaId: number, foto: string | null): Promise<void> {
   await requireAdmin();

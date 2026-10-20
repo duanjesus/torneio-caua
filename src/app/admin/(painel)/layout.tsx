@@ -16,7 +16,7 @@ export default async function PainelLayout({ children }: { children: React.React
         <div className="mx-auto max-w-5xl px-4">
           <div className="flex items-center gap-3 pt-3">
             <Link href="/admin" className="flex min-w-0 items-center gap-2.5">
-              <Image src="/escudo.jpg" alt="" width={36} height={36} className="size-9 rounded-lg" />
+              <Image src="/escudo.png" alt="" width={40} height={40} className="size-10" />
               <span className="font-display truncate text-2xl leading-none tracking-wide">
                 <span className="text-fla-500">Torneio</span> do {EVENTO.aniversariante}
               </span>

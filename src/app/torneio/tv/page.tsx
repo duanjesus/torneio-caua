@@ -30,7 +30,7 @@ export default async function ModoTv() {
     <main className="riscos fixed inset-0 flex flex-col overflow-hidden bg-campo-950 text-white">
       <AtualizarSozinho segundos={5} />
       <header className="flex items-center gap-[1.2vw] border-b border-campo-700 px-[2.5vw] py-[1vw]">
-        <Image src="/escudo.jpg" alt="" width={160} height={160} className="h-[4.5vw] w-[4.5vw] rounded-[0.6vw]" priority />
+        <Image src="/escudo.png" alt="" width={160} height={160} className="h-[4.5vw] w-[4.5vw]" priority />
         <h1 className="font-display text-[3vw] leading-none tracking-wide">
           <span className="text-fla-500">Torneio</span> do {EVENTO.aniversariante}
           <span className="ml-[1vw] text-[1.6vw] text-zinc-500">{EVENTO.idade} anos</span>
