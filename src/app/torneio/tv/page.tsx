@@ -1,6 +1,7 @@
 import Image from "next/image";
 import QRCode from "qrcode";
 import { AtualizarSozinho } from "@/components/atualizar-sozinho";
+import { CampoInteiro } from "@/components/escalacao";
 import { CorTime, rotuloJogo } from "@/components/torneio-ui";
 import { CronometroTv, Relogio, Rotacao, TelaCheia } from "@/components/tv";
 import { EVENTO, publicUrl } from "@/lib/evento";
@@ -64,6 +65,13 @@ function Placar({ t, qr }: { t: DadosTorneio; qr: string }) {
 
   // Painéis da direita: só entra o que tem conteúdo.
   const paineis: { titulo: string; conteudo: React.ReactNode }[] = [];
+  // Escalação do jogo em destaque (o que está rolando ou o próximo), quando os dois times já são conhecidos.
+  const destaque = aoVivo[0] ?? proximos[0];
+  const timeA = destaque?.timeAId ? t.timePorId.get(destaque.timeAId) : null;
+  const timeB = destaque?.timeBId ? t.timePorId.get(destaque.timeBId) : null;
+  if (timeA && timeB) {
+    paineis.push({ titulo: "Escalação", conteudo: <CampoInteiro timeA={timeA} timeB={timeB} /> });
+  }
   if (Object.keys(t.classificacao).length > 0) {
     paineis.push({ titulo: "Classificação", conteudo: <PainelClassificacao t={t} /> });
   }

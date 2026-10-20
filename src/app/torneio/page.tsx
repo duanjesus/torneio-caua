@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AtualizarSozinho } from "@/components/atualizar-sozinho";
+import { MeioCampo } from "@/components/escalacao";
 import { Artilharia, CartaoJogo, Chave, CorTime, TabelaGrupo } from "@/components/torneio-ui";
 import { db } from "@/lib/db";
 import { EVENTO } from "@/lib/evento";
@@ -116,20 +117,18 @@ export default async function TorneioPublico() {
           )}
         </div>
 
-        <Secao titulo="Times">
+        <Secao titulo="Escalações">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {t.times.map((time) => (
               <div key={time.id} className="cartao overflow-hidden">
                 <div className="h-1.5" style={{ backgroundColor: time.cor }} />
-                <div className="p-4">
-                  <h3 className="flex items-center gap-2 font-semibold">
+                <div className="space-y-3 p-3">
+                  <h3 className="flex items-center gap-2 px-1 font-semibold">
                     <CorTime cor={time.cor} />
                     {time.nome}
                     {time.grupo && <span className="ml-auto text-xs font-normal text-zinc-500">Grupo {time.grupo}</span>}
                   </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-zinc-400">
-                    {time.jogadores.map((j) => nomePublico(j.nome) + (j.goleiro ? " 🧤" : "")).join(" · ")}
-                  </p>
+                  <MeioCampo time={time} />
                 </div>
               </div>
             ))}

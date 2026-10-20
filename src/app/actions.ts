@@ -3,8 +3,19 @@
 import { revalidatePath } from "next/cache";
 import type { RetornoAcao } from "@/components/formulario-resposta";
 import { db } from "@/lib/db";
+import { TAMANHO_MAXIMO, salvarFoto } from "@/lib/fotos";
 import { validarResposta } from "@/lib/resposta";
 import { gravarResposta } from "@/lib/respostas";
+
+/** Recebe a foto (já reduzida no celular) e devolve o nome do arquivo para ir junto com a resposta. */
+export async function enviarFoto(form: FormData): Promise<{ ok: true; foto: string } | { ok: false; erro: string }> {
+  const arquivo = form.get("foto");
+  if (!(arquivo instanceof File) || arquivo.size === 0) return { ok: false, erro: "Escolha uma foto." };
+  if (arquivo.size > TAMANHO_MAXIMO) return { ok: false, erro: "Foto grande demais." };
+  const foto = await salvarFoto(new Uint8Array(await arquivo.arrayBuffer()));
+  if (!foto) return { ok: false, erro: "Esse arquivo não é uma foto." };
+  return { ok: true, foto };
+}
 
 /** Resposta do convidado pelo link geral. Com `token`, edita a resposta já enviada. */
 export async function responderConvite(token: string | null, dados: unknown): Promise<RetornoAcao> {

@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AvisoEquipamento } from "@/components/aviso-equipamento";
+import { Avatar } from "@/components/avatar";
 import { SalvarToken } from "@/components/salvar-token";
 import { EVENTO, agendaUrl, mapaUrl } from "@/lib/evento";
 import { buscarPorToken } from "@/lib/respostas";
@@ -47,8 +49,11 @@ export default async function Confirmado({ params }: { params: Promise<{ token: 
               <ul className="mt-2 space-y-2">
                 {r.criancas.map((c) => (
                   <li key={c.id} className="flex items-center justify-between gap-3">
-                    <span>
-                      {c.nome} <span className="text-zinc-500">· {c.idade} anos</span>
+                    <span className="flex min-w-0 items-center gap-3">
+                      {c.joga && <Avatar nome={c.nome} foto={c.foto} cor="#e10600" className="size-9" textoClassName="text-xs" />}
+                      <span>
+                        {c.nome} <span className="text-zinc-500">· {c.idade} anos</span>
+                      </span>
                     </span>
                     {c.joga && (
                       <span className="shrink-0 rounded-full bg-fla-500/15 px-2.5 py-1 text-xs font-medium text-fla-400">
@@ -75,6 +80,7 @@ export default async function Confirmado({ params }: { params: Promise<{ token: 
             .
           </p>
         )}
+        {jogadores.length > 0 && <AvisoEquipamento />}
 
         <div className="grid gap-2 sm:grid-cols-2">
           {vem && (

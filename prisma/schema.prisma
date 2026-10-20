@@ -43,6 +43,8 @@ model Crianca {
   goleiro    Boolean  @default(false)
   /// 1 a 3, definido só pelo admin, para equilibrar os times no sorteio.
   nivel      Int?
+  /// Nome do arquivo da foto (ex.: "k3J9...jpg"), servido em /fotos/<nome>. Ver src/lib/fotos.ts.
+  foto       String?
   ordem      Int      @default(0)
   timeId     Int?
   time       Time?    @relation(fields: [timeId], references: [id], onDelete: SetNull)

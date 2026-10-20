@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useOptimistic, useTransition } from "react";
-import { atualizarJogador, tirarDoTorneio } from "@/app/admin/actions";
+import { atualizarJogador, definirFoto, tirarDoTorneio } from "@/app/admin/actions";
+import { FotoCrianca } from "./foto-crianca";
 
 type Props = {
   id: number;
@@ -13,6 +14,7 @@ type Props = {
   talvez: boolean;
   responsavel: string;
   respostaId: number;
+  foto: string | null;
 };
 
 export function LinhaJogador(props: Props) {
@@ -31,7 +33,8 @@ export function LinhaJogador(props: Props) {
 
   return (
     <li className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
-      <div className="min-w-0 flex-1 basis-48">
+      <FotoCrianca compacto nome={props.nome} foto={props.foto} onChange={(foto) => iniciar(() => definirFoto(props.id, foto))} />
+      <div className="min-w-0 flex-1 basis-40">
         <p className="font-medium">
           {props.nome} <span className="text-zinc-500">· {props.idade} anos</span>
           {props.talvez && <span className="ml-2 rounded-full bg-amber-500/15 px-2 py-0.5 text-xs text-amber-400">talvez</span>}

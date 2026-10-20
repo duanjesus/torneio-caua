@@ -50,6 +50,7 @@ export default async function Jogadores() {
               idade={j.idade}
               nivel={j.nivel}
               goleiro={j.goleiro}
+              foto={j.foto}
               talvez={j.resposta.presenca === "TALVEZ"}
               responsavel={j.resposta.responsavel}
               respostaId={j.resposta.id}

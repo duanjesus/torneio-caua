@@ -16,6 +16,8 @@ export const EVENTO = {
   /** Prazo para confirmar presença (vale até o fim do dia, horário de Brasília). */
   confirmarAte: "2026-10-30",
   prazoTexto: "sexta, 30/10",
+  /** Regra do campo: ninguém joga descalço. */
+  equipamento: ["Chuteira", "Meião", "Caneleira"],
 } as const;
 
 /**
@@ -57,6 +59,8 @@ export function mensagemConvite(): string {
     `${EVENTO.titulo} · ${EVENTO.idade} anos`,
     `📅 ${EVENTO.diaSemana}, ${EVENTO.dataCurta} · ${EVENTO.horario}`,
     `📍 ${EVENTO.local} · ${EVENTO.endereco}`,
+    ``,
+    `👟 Quem for jogar: chuteira, meião e caneleira. O campo não permite jogar descalço.`,
     ``,
     `Confirme até ${EVENTO.prazoTexto} e inscreva as crianças que vão jogar:`,
     publicUrl(),

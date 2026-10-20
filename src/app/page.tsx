@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { AvisoEquipamento } from "@/components/aviso-equipamento";
 import { JaRespondi } from "@/components/ja-respondi";
 import { EVENTO, agendaUrl, mapaUrl, prazoEncerrado } from "@/lib/evento";
 
@@ -58,6 +59,8 @@ export default function Convite() {
               </a>
             </Info>
           </section>
+
+          <AvisoEquipamento grande />
 
           <section className="cartao p-5">
             <h2 className="font-display text-2xl tracking-wide text-fla-500">Como funciona</h2>

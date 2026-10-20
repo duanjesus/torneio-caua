@@ -3,9 +3,19 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { EVENTO } from "@/lib/evento";
+import { AvisoEquipamento } from "./aviso-equipamento";
+import { FotoCrianca } from "./foto-crianca";
 import { LIMITES, type Erros, type Presenca } from "@/lib/resposta";
 
-export type CriancaForm = { id?: number; chave: string; nome: string; idade: string; joga: boolean; goleiro: boolean };
+export type CriancaForm = {
+  id?: number;
+  chave: string;
+  nome: string;
+  idade: string;
+  joga: boolean;
+  goleiro: boolean;
+  foto: string | null;
+};
 
 export type DadosIniciais = {
   responsavel: string;
@@ -13,7 +23,7 @@ export type DadosIniciais = {
   presenca: Presenca;
   adultos: number;
   recado: string;
-  criancas: { id?: number; nome: string; idade: number; joga: boolean; goleiro: boolean }[];
+  criancas: { id?: number; nome: string; idade: number; joga: boolean; goleiro: boolean; foto: string | null }[];
 };
 
 export type RetornoAcao = { ok: true; destino: string } | { ok: false; erros: Erros };
@@ -60,7 +70,7 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
 
   function adicionarCrianca() {
     const chave = novaChave();
-    setCriancas((lista) => [...lista, { chave, nome: "", idade: "", joga: true, goleiro: false }]);
+    setCriancas((lista) => [...lista, { chave, nome: "", idade: "", joga: true, goleiro: false, foto: null }]);
   }
 
   function removerCrianca(chave: string) {
@@ -254,6 +264,12 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
                   Remover
                 </button>
               </div>
+
+              {c.joga && (
+                <div className="border-t border-campo-700 pt-3">
+                  <FotoCrianca nome={c.nome} foto={c.foto} onChange={(foto) => mudarCrianca(c.chave, { foto })} />
+                </div>
+              )}
             </div>
           ))}
 
@@ -266,9 +282,12 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
           )}
 
           {jogadores > 0 && (
-            <p className="text-sm text-zinc-400">
-              {jogadores === 1 ? "1 criança inscrita" : `${jogadores} crianças inscritas`} no torneio.
-            </p>
+            <div className="space-y-2">
+              <p className="text-sm text-zinc-400">
+                {jogadores === 1 ? "1 criança inscrita" : `${jogadores} crianças inscritas`} no torneio.
+              </p>
+              <AvisoEquipamento />
+            </div>
           )}
         </section>
       )}

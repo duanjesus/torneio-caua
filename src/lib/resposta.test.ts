@@ -16,7 +16,7 @@ test("aceita uma resposta completa e normaliza os campos", () => {
   assert.ok(r.ok);
   assert.equal(r.valor.responsavel, "Maria Silva");
   assert.equal(r.valor.telefone, "21998765432");
-  assert.deepEqual(r.valor.criancas, [{ nome: "João", idade: 8, joga: true, goleiro: true }]);
+  assert.deepEqual(r.valor.criancas, [{ nome: "João", idade: 8, joga: true, goleiro: true, foto: null }]);
 });
 
 test("telefone com +55 perde o código do país", () => {

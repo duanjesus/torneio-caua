@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import type { RetornoAcao } from "@/components/formulario-resposta";
 import { checkPassword, createSession, destroySession, requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { validarResposta } from "@/lib/resposta";
+import { nomeFotoValido, validarResposta } from "@/lib/resposta";
 import { gravarResposta } from "@/lib/respostas";
 
 export async function login(_: string | null, form: FormData): Promise<string | null> {
@@ -51,6 +51,15 @@ export async function atualizarJogador(criancaId: number, campos: { nivel?: numb
   if (typeof campos.goleiro === "boolean") data.goleiro = campos.goleiro;
   await db.crianca.updateMany({ where: { id: criancaId, joga: true }, data });
   revalidatePath("/admin", "layout");
+}
+
+/** Admin põe ou troca a foto (ex.: quando a família mandou pelo WhatsApp). */
+export async function definirFoto(criancaId: number, foto: string | null): Promise<void> {
+  await requireAdmin();
+  if (foto !== null && !nomeFotoValido(foto)) return;
+  await db.crianca.update({ where: { id: criancaId }, data: { foto } });
+  revalidatePath("/admin", "layout");
+  revalidatePath("/torneio", "layout");
 }
 
 export async function tirarDoTorneio(criancaId: number): Promise<void> {

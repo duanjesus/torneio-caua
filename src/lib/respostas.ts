@@ -82,6 +82,7 @@ export function paraFormulario(r: RespostaCompleta) {
       idade: c.idade,
       joga: c.joga,
       goleiro: c.goleiro,
+      foto: c.foto,
     })),
   };
 }

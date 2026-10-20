@@ -44,7 +44,7 @@ export async function carregarTorneio() {
       include: {
         jogadores: {
           orderBy: { nome: "asc" },
-          select: { id: true, nome: true, idade: true, goleiro: true, nivel: true },
+          select: { id: true, nome: true, idade: true, goleiro: true, nivel: true, foto: true },
         },
       },
     }),

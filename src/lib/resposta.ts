@@ -10,7 +10,14 @@ export type CriancaInput = {
   idade: number;
   joga: boolean;
   goleiro: boolean;
+  /** Nome do arquivo devolvido pelo upload (ver src/lib/fotos.ts); null = sem foto. */
+  foto: string | null;
 };
+
+/** Só aceita o formato de nome que o servidor gera: impede apontar para outro arquivo ou site. */
+export function nomeFotoValido(nome: unknown): nome is string {
+  return typeof nome === "string" && /^[A-Za-z0-9_-]{16,40}\.(jpg|png|webp)$/.test(nome);
+}
 
 export type RespostaInput = {
   responsavel: string;
@@ -106,6 +113,7 @@ export function validarResposta(raw: unknown, { exigirTelefone = true } = {}): R
       idade: idade ?? 0,
       joga,
       goleiro: joga && c.goleiro === true,
+      foto: nomeFotoValido(c.foto) ? c.foto : null,
     };
   });
 
