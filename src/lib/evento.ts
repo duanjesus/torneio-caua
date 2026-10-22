@@ -52,17 +52,21 @@ export function publicUrl(): string {
   return (process.env.PUBLIC_URL || "http://localhost:3030").replace(/\/+$/, "");
 }
 
+/** O convite com a arte já foi mandado antes do site existir: esta mensagem só abre a confirmação. */
 export function mensagemConvite(): string {
   return [
-    `⚽ Você foi convocado! ⚽`,
+    `⚽ ${EVENTO.titulo} · ${EVENTO.idade} anos`,
     ``,
-    `${EVENTO.titulo} · ${EVENTO.idade} anos`,
+    `Lembram do convite? Agora já dá para confirmar presença! 🎉`,
+    ``,
+    `Pelo link abaixo você diz quem vem e inscreve as crianças que vão jogar (dá até para mandar uma foto delas para a escalação 📸).`,
+    ``,
+    `Confirme até ${EVENTO.prazoTexto}, para as crianças entrarem no sorteio dos times.`,
+    ``,
     `📅 ${EVENTO.diaSemana}, ${EVENTO.dataCurta} · ${EVENTO.horario}`,
     `📍 ${EVENTO.local} · ${EVENTO.endereco}`,
-    ``,
     `👟 Quem for jogar: chuteira, meião e caneleira. O campo não permite jogar descalço.`,
     ``,
-    `Confirme até ${EVENTO.prazoTexto} e inscreva as crianças que vão jogar:`,
-    publicUrl(),
+    `👉 ${publicUrl()}`,
   ].join("\n");
 }
