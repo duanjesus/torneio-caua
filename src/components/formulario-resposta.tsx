@@ -12,7 +12,8 @@ export type CriancaForm = {
   chave: string;
   nome: string;
   idade: string;
-  joga: boolean;
+  /** null = ainda não escolheu entre jogar e só vir para a festa. */
+  joga: boolean | null;
   goleiro: boolean;
   foto: string | null;
 };
@@ -82,7 +83,7 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
 
   function adicionarCrianca() {
     const chave = novaChave();
-    setCriancas((lista) => [...lista, { chave, nome: "", idade: "", joga: true, goleiro: false, foto: null }]);
+    setCriancas((lista) => [...lista, { chave, nome: "", idade: "", joga: null, goleiro: false, foto: null }]);
   }
 
   function removerCrianca(chave: string) {
@@ -129,7 +130,7 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
     });
   }
 
-  const jogadores = criancas.filter((c) => c.joga).length;
+  const jogadores = criancas.filter((c) => c.joga === true).length;
 
   return (
     <form ref={formulario} onSubmit={enviar} noValidate className="space-y-6">
@@ -220,8 +221,8 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
           <div>
             <Etapa n={3} titulo="Crianças" />
             <p className="mt-1 text-sm text-zinc-400">
-              Liste as crianças que vêm. As marcadas com <strong className="text-zinc-200">“vai jogar”</strong> entram
-              no torneio do {EVENTO.aniversariante}.
+              Liste <strong className="text-zinc-200">todas</strong> as crianças que vêm, jogando ou não. Para cada uma, diga se
+              ela vai entrar no torneio do {EVENTO.aniversariante} ou se só vem para a festa.
             </p>
           </div>
 
@@ -263,14 +264,33 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
                 </div>
               </div>
 
+              <fieldset>
+                <legend className="rotulo">Vai entrar no torneio?</legend>
+                <div className="grid grid-cols-2 gap-2">
+                  <Escolha
+                    ativo={c.joga === true}
+                    onClick={() => {
+                      mudarCrianca(c.chave, { joga: true });
+                      limpar(`criancas.${i}.joga`);
+                    }}
+                    titulo="⚽ Vai jogar"
+                    detalhe="Entra no sorteio dos times"
+                  />
+                  <Escolha
+                    ativo={c.joga === false}
+                    onClick={() => {
+                      mudarCrianca(c.chave, { joga: false, goleiro: false });
+                      limpar(`criancas.${i}.joga`);
+                    }}
+                    titulo="🎈 Só a festa"
+                    detalhe="Vem, mas não joga"
+                  />
+                </div>
+                {erros[`criancas.${i}.joga`] && <p className="erro">{erros[`criancas.${i}.joga`]}</p>}
+              </fieldset>
+
               <div className="flex flex-wrap items-center gap-2">
-                <Alternar
-                  ativo={c.joga}
-                  onClick={() => mudarCrianca(c.chave, { joga: !c.joga, goleiro: c.joga ? false : c.goleiro })}
-                >
-                  ⚽ Vai jogar
-                </Alternar>
-                {c.joga && (
+                {c.joga === true && (
                   <Alternar ativo={c.goleiro} onClick={() => mudarCrianca(c.chave, { goleiro: !c.goleiro })}>
                     🧤 Topa ser goleiro
                   </Alternar>
@@ -284,7 +304,7 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
                 </button>
               </div>
 
-              {c.joga && (
+              {c.joga === true && (
                 <div className="border-t border-campo-700 pt-3">
                   <FotoCrianca nome={c.nome} foto={c.foto} onChange={(foto) => mudarCrianca(c.chave, { foto })} />
                 </div>
@@ -344,6 +364,23 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
         {enviando ? "Salvando…" : (textoBotao ?? "Enviar resposta")}
       </button>
     </form>
+  );
+}
+
+/** Uma das duas respostas de "vai entrar no torneio?". */
+function Escolha({ ativo, onClick, titulo, detalhe }: { ativo: boolean; onClick: () => void; titulo: string; detalhe: string }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={ativo}
+      onClick={onClick}
+      className={`rounded-xl border px-3 py-2.5 text-left transition-colors ${
+        ativo ? "border-fla-500 bg-fla-500/15 text-white" : "border-campo-600 bg-campo-900 text-zinc-300 hover:bg-campo-800"
+      }`}
+    >
+      <span className="block text-sm font-semibold">{titulo}</span>
+      <span className={`block text-xs ${ativo ? "text-zinc-300" : "text-zinc-500"}`}>{detalhe}</span>
+    </button>
   );
 }
 

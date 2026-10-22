@@ -104,6 +104,8 @@ export function validarResposta(raw: unknown, { exigirTelefone = true } = {}): R
     const idade = inteiro(c.idade);
     if (idade === null || idade < 0 || idade > LIMITES.idadeMax) erros[`criancas.${i}.idade`] = "Idade de 0 a 17.";
 
+    // Para quem vem, cada criança tem de ter a escolha feita: jogar ou só a festa.
+    if (vaiNaFesta && typeof c.joga !== "boolean") erros[`criancas.${i}.joga`] = "Escolha: vai jogar ou só vem para a festa.";
     // Quem não vem à festa não joga; goleiro só faz sentido para quem joga.
     const joga = vaiNaFesta && c.joga === true;
     const id = inteiro(c.id);

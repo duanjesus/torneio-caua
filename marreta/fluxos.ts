@@ -47,11 +47,9 @@ async function preencherCrianca(ctx: Contexto, card: Locator, podeFoto: boolean)
   const { page, h } = ctx
   await h.digitar(card.locator('input[id$="-nome"]'), `${h.sorteio(NOMES)} ${h.sorteio(['Lima', 'Souza', 'Rocha', 'Dias'])}`)
   await card.locator('select[id$="-idade"]').selectOption(String(h.inteiro(4, 11)))
-  let joga = true
-  if (h.chance(0.25)) {
-    await card.getByRole('button', { name: /Vai jogar/ }).click()
-    joga = false
-  }
+  // Cada criança precisa da escolha: "Vai jogar" ou "Só a festa" (nenhuma vem marcada)
+  const joga = !h.chance(0.25)
+  await card.getByRole('button', { name: joga ? /Vai jogar/ : /Só a festa/ }).click()
   if (joga && h.chance(0.3)) await card.getByRole('button', { name: /goleiro/ }).click()
   if (joga && podeFoto && h.chance(0.4)) {
     h.passo('mandar a foto da criança para a escalação')

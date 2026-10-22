@@ -64,8 +64,8 @@ test("preserva o id da criança na edição e ignora id inválido", () => {
   const r = validarResposta({
     ...base,
     criancas: [
-      { id: 7, nome: "Theo", idade: 8 },
-      { id: "abc", nome: "Davi", idade: 9 },
+      { id: 7, nome: "Theo", idade: 8, joga: true },
+      { id: "abc", nome: "Davi", idade: 9, joga: false },
     ],
   });
   assert.ok(r.ok);
@@ -84,4 +84,15 @@ test("nome público abrevia o sobrenome", () => {
   assert.equal(nomePublico("Cauã"), "Cauã");
   assert.equal(nomePublico("Cauã Jesus"), "Cauã J.");
   assert.equal(nomePublico("Ana Paula de Souza"), "Ana Paula S.");
+});
+
+test("criança de quem vem precisa da escolha: jogar ou só a festa", () => {
+  const sem = validarResposta({ ...base, criancas: [{ nome: "Bia", idade: 5 }] });
+  assert.ok(!sem.ok);
+  assert.ok(sem.erros["criancas.0.joga"]);
+  const soFesta = validarResposta({ ...base, criancas: [{ nome: "Bia", idade: 5, joga: false }] });
+  assert.ok(soFesta.ok);
+  assert.equal(soFesta.valor.criancas[0].joga, false);
+  // Quem não vem não precisa escolher
+  assert.ok(validarResposta({ ...base, presenca: "NAO", adultos: 0, criancas: [{ nome: "Bia", idade: 5 }] }).ok);
 });
