@@ -90,6 +90,17 @@
       }
     },
     {
+      "nome": "Tia (só olha)",
+      "usuario": "leitor",
+      "senha": "mrt-leitura-7d3f09",
+      "tela": "celular",
+      "entrada": "leitura",
+      "fluxos": {
+        "leitura: ver os confirmados": 3,
+        "leitura: tentar mexer no painel": 2
+      }
+    },
+    {
       "nome": "Organizador",
       "usuario": "admin",
       "senha": "mrt-torneio-5b2e81",

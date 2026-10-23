@@ -27,6 +27,11 @@ export async function preparar(context: BrowserContext, _alvo: Alvo, _persona: P
 // (o Next anuncia o título de cada página num elemento com role="alert": erro do site é só o <p>)
 const erroNaTela = async (page: Page) => ((await page.locator('p[role="alert"]').first().innerText({ timeout: 500 }).catch(() => '')) ?? '').trim()
 const numero = (texto: string) => Number(/-?\d+/.exec(texto)?.[0] ?? NaN)
+const ACOMPANHANTES = ['Vó Lúcia', 'Tio Beto', 'Dinda Carol', 'Pai do Theo', 'Mãe da Bia', 'Tia Rê']
+async function adicionarAdulto(page: Page, h: Contexto['h']): Promise<void> {
+  await page.getByRole('button', { name: '+ Adicionar adulto' }).click()
+  await h.digitar(page.locator('input[id$="-adulto"]').last(), h.sorteio(ACOMPANHANTES))
+}
 const cartoesDeCrianca = (page: Page) => page.locator('form .cartao').filter({ has: page.locator('input[id$="-nome"]') })
 
 async function esperarUrl(page: Page, padrao: RegExp, oQue: string): Promise<void> {
@@ -73,7 +78,8 @@ const confirmarComCriancas: Fluxo = async (ctx) => {
   const nome = `${persona.nome} ${h.inteiro(100, 999)}-${++contador}`
   await h.digitar(page.locator('#responsavel'), nome)
   await h.digitar(page.locator('#telefone'), `(21) 9${h.inteiro(1000, 9999)}-${h.inteiro(1000, 9999)}`)
-  for (let i = h.inteiro(0, 2); i > 0; i--) await page.getByRole('button', { name: 'Mais um' }).click()
+  const acompanhantes = h.inteiro(0, 2)
+  for (let i = 0; i < acompanhantes; i++) await adicionarAdulto(page, h)
 
   const quantas = h.inteiro(1, 3)
   let jogam = 0
@@ -92,6 +98,8 @@ const confirmarComCriancas: Fluxo = async (ctx) => {
   if (!resumo.includes(nome)) throw new Error(`A confirmação não mostra o nome que eu enviei ("${nome}").`)
   const listadas = await page.locator('main section li').count()
   if (listadas !== quantas) throw new Error(`Enviei ${quantas} crianças e a confirmação lista ${listadas}.`)
+  const vem = numero(/(\d+) adultos?/.exec(resumo)?.[1] ?? '')
+  if (vem !== 1 + acompanhantes) throw new Error(`Eu vou e nomeei ${acompanhantes} acompanhantes, e a confirmação diz ${vem} adultos.`)
   if (jogam > 0) {
     const inscritas = numero(/(\d+) crianças? inscritas?/.exec(resumo)?.[1] ?? '')
     if (inscritas !== jogam) throw new Error(`Marquei ${jogam} crianças para jogar e a confirmação diz ${inscritas} inscritas.`)
@@ -128,7 +136,7 @@ const mudarResposta: Fluxo = async (ctx) => {
     esperado = 'Anotado!'
   } else if (mudanca === 'vou') {
     await page.getByRole('button', { name: /^Vou!/ }).click()
-    if ((await page.getByRole('button', { name: 'Mais um' }).isVisible()) && h.chance(0.5)) await page.getByRole('button', { name: 'Mais um' }).click()
+    if (h.chance(0.5)) await adicionarAdulto(page, h)
   } else if (mudanca === 'tirar' && criancas > 0) {
     await cartoesDeCrianca(page).nth(h.inteiro(0, criancas - 1)).getByRole('button', { name: 'Remover', exact: true }).click()
     criancas--
@@ -137,15 +145,20 @@ const mudarResposta: Fluxo = async (ctx) => {
     await preencherCrianca(ctx, cartoesDeCrianca(page).last(), false)
     criancas++
   } else {
-    await page.getByRole('button', { name: 'Mais um' }).click()
+    await adicionarAdulto(page, h)
+  }
+  // Resposta antiga ou editada pode ter acompanhante sem nome: dá um nome a ele
+  for (const vazio of await page.locator('input[id$="-adulto"]').all()) {
+    if (!(await vazio.inputValue()).trim()) await h.digitar(vazio, h.sorteio(ACOMPANHANTES))
   }
   // Conta de novo depois da mudança: quem tinha respondido "Não vou" guarda as crianças escondidas,
   // e elas voltam a aparecer quando a resposta vira "Vou!" ou "Talvez".
   criancas = await cartoesDeCrianca(page).count()
-  // Quem passa a ir sem nenhum adulto e nenhuma criança cai no "diga quantas pessoas vêm": põe um adulto
-  const adultos = page.locator('[aria-live="polite"]').first()
-  if (esperado !== 'Que pena!' && criancas === 0 && (await adultos.isVisible()) && numero(await adultos.innerText()) === 0) {
-    await page.getByRole('button', { name: 'Mais um' }).click()
+  // Quem passa a ir sem nenhum adulto e nenhuma criança cai no "diga quem vem": marca "Eu vou"
+  const euVou = page.getByRole('button', { name: /^Eu vou/ })
+  if (esperado !== 'Que pena!' && criancas === 0 && (await euVou.isVisible()) && (await euVou.getAttribute('aria-pressed')) !== 'true'
+    && !(await page.locator('input[id$="-adulto"]').count())) {
+    await euVou.click()
   }
 
   h.passo('salvar as alterações')
@@ -536,9 +549,53 @@ const cadastrarLance: Fluxo = async (ctx) => {
   if (depois !== antes + 1) throw new Error(`Adicionei um lance e a lista foi de ${antes} para ${depois}.`)
 }
 
+// ---------- acesso só de leitura ----------
+
+const entrarSoLeitura: Fluxo = async ({ page, alvo, senha, h }) => {
+  h.passo('abrir o painel com a senha de leitura')
+  await page.goto(alvo.urls.admin)
+  const campo = page.locator('#senha')
+  await campo.or(page.getByRole('heading', { level: 1, name: 'Confirmados' })).first().waitFor()
+  if (await page.getByRole('heading', { level: 1, name: 'Confirmados' }).isVisible()) return
+  await h.digitar(campo, senha)
+  await page.getByRole('button', { name: 'Entrar' }).click()
+  await page.waitForURL((url) => url.pathname === '/admin/lista', { timeout: 10_000 }).catch(() => {})
+  if (new URL(page.url()).pathname !== '/admin/lista') throw new Error(`Entrei com a senha de leitura e caí em ${new URL(page.url()).pathname}, não na lista de confirmados.`)
+}
+
+const verConfirmados: Fluxo = async (ctx) => {
+  const { page, alvo, h } = ctx
+  if (new URL(page.url()).pathname !== '/admin/lista') await entrarSoLeitura(ctx)
+  h.passo('abrir a lista de confirmados')
+  await page.goto(new URL('/admin/lista', alvo.urls.admin).href)
+  const familias = numero(await page.locator('.cartao', { hasText: /famílias?$/ }).locator('p.font-display').innerText())
+  const naLista = await page.locator('main > ul > li').count()
+  if (familias !== naLista) throw new Error(`A lista diz ${familias} famílias e mostra ${naLista}.`)
+  // Só leitura: nada de telefone, edição ou botão além de Sair
+  const texto = await page.locator('main').innerText()
+  if (/\(\d{2}\) \d{4,5}-\d{4}/.test(texto)) throw new Error('A lista de quem só pode ler mostra telefones.')
+  const botoes = (await page.locator('button').allInnerTexts()).map((t) => t.trim()).filter((t) => t && t !== 'Sair')
+  if (botoes.length) throw new Error(`A lista de quem só pode ler tem botões de ação: ${botoes.join(', ')}.`)
+  if (await page.locator('a[href^="/admin/convidados"], a[href*="/confirmar?t="]').count()) throw new Error('A lista de quem só pode ler tem link para editar convidados.')
+  await h.pausa(1500, 4000)
+}
+
+const tentarMexer: Fluxo = async (ctx) => {
+  const { page, alvo, h } = ctx
+  if (new URL(page.url()).pathname !== '/admin/lista') await entrarSoLeitura(ctx)
+  const tela = h.sorteio(['/admin', '/admin/convidados', '/admin/convidados/novo', '/admin/convidados/1', '/admin/lembretes', '/admin/jogadores', '/admin/times', '/admin/tabela', '/admin/jogos', '/admin/lances'])
+  h.passo(`digitar o endereço ${tela} (proibido para quem só lê)`)
+  await page.goto(new URL(tela, alvo.urls.admin).href)
+  if (new URL(page.url()).pathname !== '/admin/lista') throw new Error(`Com a senha de leitura consegui abrir ${tela} (fui parar em ${new URL(page.url()).pathname}).`)
+  h.passo('baixar a planilha de convidados (liberada para quem só lê)')
+  const planilha = await page.request.get(new URL('/admin/exportar', alvo.urls.admin).href)
+  if (planilha.status() !== 200 || !(planilha.headers()['content-type'] ?? '').includes('text/csv'))
+    throw new Error(`Com a senha de leitura a planilha de convidados respondeu HTTP ${planilha.status()} (${planilha.headers()['content-type']}).`)
+}
+
 // ---------- o que o Marreta carrega ----------
 
-export const entrar: Record<string, Fluxo> = { convite: abrirConvite, admin: entrarNoPainel, torneio: entrarNoTorneio }
+export const entrar: Record<string, Fluxo> = { convite: abrirConvite, admin: entrarNoPainel, torneio: entrarNoTorneio, leitura: entrarSoLeitura }
 
 export const fluxos: Record<string, Fluxo> = {
   'convite: confirmar com crianças': confirmarComCriancas,
@@ -554,4 +611,6 @@ export const fluxos: Record<string, Fluxo> = {
   'admin: dar nível aos jogadores': darNivel,
   'admin: abrir os lembretes': abrirLembretes,
   'admin: cadastrar um lance': cadastrarLance,
+  'leitura: ver os confirmados': verConfirmados,
+  'leitura: tentar mexer no painel': tentarMexer,
 }

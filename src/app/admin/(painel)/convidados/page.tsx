@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { SeloPresenca } from "@/components/selo-presenca";
 import { db } from "@/lib/db";
-import { formatarTelefone, whatsappUrl } from "@/lib/resposta";
+import { formatarTelefone, nomesDosAdultos, whatsappUrl } from "@/lib/resposta";
 
 export const dynamic = "force-dynamic";
 
@@ -107,6 +107,11 @@ export default async function Convidados({ searchParams }: { searchParams: Promi
                     {r.presenca !== "NAO" && `${r.adultos} ${r.adultos === 1 ? "adulto" : "adultos"} · `}
                     respondeu {dataHora.format(r.criadoEm)}
                   </p>
+                  {r.adultos > 0 && (
+                    <p className="mt-1 text-sm text-zinc-300">
+                      <span className="text-zinc-500">Adultos:</span> {nomesDosAdultos(r).join(", ")}
+                    </p>
+                  )}
                 </div>
                 <Link href={`/admin/convidados/${r.id}`} className="btn-pequeno">
                   Editar

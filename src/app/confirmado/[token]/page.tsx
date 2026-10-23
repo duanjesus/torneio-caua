@@ -5,6 +5,7 @@ import { AvisoEquipamento } from "@/components/aviso-equipamento";
 import { Avatar } from "@/components/avatar";
 import { SalvarToken } from "@/components/salvar-token";
 import { EVENTO, agendaUrl, mapaUrl } from "@/lib/evento";
+import { nomesDosAdultos } from "@/lib/resposta";
 import { buscarPorToken } from "@/lib/respostas";
 
 export const metadata = { title: `Sua resposta · ${EVENTO.titulo}`, robots: { index: false } };
@@ -43,6 +44,7 @@ export default async function Confirmado({ params }: { params: Promise<{ token: 
                 ` e ${r.criancas.length} ${r.criancas.length === 1 ? "criança" : "crianças"}`}
             </Linha>
           )}
+          {vem && r.adultos > 0 && <Linha rotulo="Adultos">{nomesDosAdultos(r).join(", ")}</Linha>}
           {vem && r.criancas.length > 0 && (
             <div className="px-5 py-4">
               <p className="text-sm text-zinc-400">Crianças</p>

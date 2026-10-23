@@ -20,6 +20,7 @@ export async function gravarResposta(
     telefone: valor.telefone,
     presenca: valor.presenca,
     adultos: valor.adultos,
+    acompanhantes: valor.acompanhantes,
     recado: valor.recado || null,
   };
 
@@ -74,7 +75,15 @@ export function paraFormulario(r: RespostaCompleta) {
     responsavel: r.responsavel,
     telefone: r.telefone,
     presenca: r.presenca,
-    adultos: r.adultos,
+    // "Eu vou" e os acompanhantes. Resposta antiga tinha só o número de adultos: os que
+    // passam de "eu + nomes" viram campos em branco para a família nomear.
+    euVou: r.presenca === "NAO" || r.adultos > r.acompanhantes.length,
+    acompanhantes: [
+      ...r.acompanhantes,
+      ...Array<string>(
+        r.presenca === "NAO" ? 0 : Math.max(0, r.adultos - (r.adultos > r.acompanhantes.length ? 1 : 0) - r.acompanhantes.length),
+      ).fill(""),
+    ],
     recado: r.recado ?? "",
     criancas: r.criancas.map((c) => ({
       id: c.id,

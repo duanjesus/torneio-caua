@@ -22,7 +22,10 @@ export type DadosIniciais = {
   responsavel: string;
   telefone: string;
   presenca: Presenca;
-  adultos: number;
+  /** Quem responde vai à festa. */
+  euVou: boolean;
+  /** Nomes dos outros adultos (vazio = adulto ainda sem nome, de resposta antiga). */
+  acompanhantes: string[];
   recado: string;
   criancas: { id?: number; nome: string; idade: number; joga: boolean; goleiro: boolean; foto: string | null }[];
 };
@@ -52,7 +55,10 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
   const [presenca, setPresenca] = useState<Presenca | null>(inicial?.presenca ?? null);
   const [responsavel, setResponsavel] = useState(inicial?.responsavel ?? "");
   const [telefone, setTelefone] = useState(inicial?.telefone ?? "");
-  const [adultos, setAdultos] = useState(inicial?.adultos ?? 1);
+  const [euVou, setEuVou] = useState(inicial?.euVou ?? true);
+  const [acompanhantes, setAcompanhantes] = useState<{ chave: string; nome: string }[]>(
+    () => inicial?.acompanhantes.map((nome) => ({ chave: novaChave(), nome })) ?? [],
+  );
   const [recado, setRecado] = useState(inicial?.recado ?? "");
   const [criancas, setCriancas] = useState<CriancaForm[]>(
     () =>
@@ -108,7 +114,8 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
       responsavel,
       telefone,
       presenca,
-      adultos: vem ? adultos : 0,
+      euVou,
+      acompanhantes: acompanhantes.map((a) => a.nome),
       recado,
       criancas: criancas.map(({ chave: _chave, ...c }) => c),
       site,
@@ -201,19 +208,88 @@ export function FormularioResposta({ inicial, acao, modo = "convidado", textoBot
       </div>
 
       {vem && (
-        <div>
-          <span className="rotulo" id="adultos-rotulo">
-            {admin ? "Adultos (contando o responsável)" : "Quantos adultos vêm, contando você?"}
-          </span>
-          <Contador
-            rotuloId="adultos-rotulo"
-            valor={adultos}
-            min={0}
-            max={LIMITES.adultos}
-            onChange={(n) => { setAdultos(n); limpar("adultos"); }}
-          />
+        <section className="space-y-3" aria-labelledby="adultos-titulo">
+          <div>
+            <span className="rotulo" id="adultos-titulo">
+              Adultos que vêm
+            </span>
+            <button
+              type="button"
+              aria-pressed={euVou}
+              onClick={() => {
+                setEuVou(!euVou);
+                limpar("adultos");
+              }}
+              className={`flex w-full items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition-colors ${
+                euVou ? "border-fla-500 bg-fla-500/10" : "border-campo-600 bg-campo-900 hover:bg-campo-800"
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className={`flex size-6 shrink-0 items-center justify-center rounded-md border text-sm font-bold ${
+                  euVou ? "border-fla-500 bg-fla-500 text-white" : "border-campo-600"
+                }`}
+              >
+                {euVou ? "✓" : ""}
+              </span>
+              <span className="min-w-0">
+                <span className="block font-semibold">{admin ? "O responsável vai" : "Eu vou"}</span>
+                <span className="block truncate text-sm text-zinc-400">{responsavel.trim() || (admin ? "Responsável" : "Você")}</span>
+              </span>
+            </button>
+          </div>
+
+          {acompanhantes.map((a, i) => (
+            <div key={a.chave}>
+              <label htmlFor={`${a.chave}-adulto`} className="sr-only">
+                Nome do {i + 1}º acompanhante
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id={`${a.chave}-adulto`}
+                  className="campo"
+                  value={a.nome}
+                  maxLength={60}
+                  placeholder="Nome do adulto"
+                  onChange={(e) => {
+                    const nome = e.target.value;
+                    setAcompanhantes((l) => l.map((x) => (x.chave === a.chave ? { ...x, nome } : x)));
+                    limpar(`acompanhantes.${i}`);
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAcompanhantes((l) => l.filter((x) => x.chave !== a.chave));
+                    // Os erros são por posição; tirando um, as posições mudam.
+                    setErros((e) => Object.fromEntries(Object.entries(e).filter(([k]) => !k.startsWith("acompanhantes"))));
+                  }}
+                  aria-label={`Tirar ${a.nome || "este adulto"}`}
+                  className="shrink-0 rounded-xl border border-campo-600 px-3 text-sm text-zinc-400 hover:bg-campo-800 hover:text-fla-400"
+                >
+                  Tirar
+                </button>
+              </div>
+              {erros[`acompanhantes.${i}`] && <p className="erro">{erros[`acompanhantes.${i}`]}</p>}
+            </div>
+          ))}
+
+          {acompanhantes.length < LIMITES.adultos - 1 && (
+            <button
+              type="button"
+              onClick={() => {
+                const chave = novaChave();
+                setAcompanhantes((l) => [...l, { chave, nome: "" }]);
+                limpar("adultos");
+              }}
+              className="btn-secundario w-full border-dashed"
+            >
+              + Adicionar adulto
+            </button>
+          )}
+          {erros.acompanhantes && <p className="erro">{erros.acompanhantes}</p>}
           {erros.adultos && <p className="erro">{erros.adultos}</p>}
-        </div>
+        </section>
       )}
 
       {vem && (
@@ -396,35 +472,6 @@ function Alternar({ ativo, onClick, children }: { ativo: boolean; onClick: () =>
     >
       {children}
     </button>
-  );
-}
-
-function Contador(props: { rotuloId: string; valor: number; min: number; max: number; onChange: (n: number) => void }) {
-  const { rotuloId, valor, min, max, onChange } = props;
-  return (
-    <div className="flex items-center gap-3" role="group" aria-labelledby={rotuloId}>
-      <button
-        type="button"
-        aria-label="Menos um"
-        disabled={valor <= min}
-        onClick={() => onChange(valor - 1)}
-        className="btn-secundario size-12 p-0 text-2xl"
-      >
-        −
-      </button>
-      <span className="font-display w-10 text-center text-4xl leading-none" aria-live="polite">
-        {valor}
-      </span>
-      <button
-        type="button"
-        aria-label="Mais um"
-        disabled={valor >= max}
-        onClick={() => onChange(valor + 1)}
-        className="btn-secundario size-12 p-0 text-2xl"
-      >
-        +
-      </button>
-    </div>
   );
 }
 

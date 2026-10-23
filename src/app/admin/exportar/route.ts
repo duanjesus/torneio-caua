@@ -1,12 +1,13 @@
-import { isAdmin } from "@/lib/auth";
+import { papelAtual } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { formatarTelefone } from "@/lib/resposta";
+import { formatarTelefone, nomesDosAdultos } from "@/lib/resposta";
 
 const PRESENCA = { SIM: "Vai", TALVEZ: "Talvez", NAO: "Não vai" } as const;
 
 /** Planilha (CSV para Excel/Google Planilhas) com uma linha por pessoa listada. */
 export async function GET() {
-  if (!(await isAdmin())) return new Response("Não autorizado", { status: 401 });
+  // Organizador e quem tem a senha de leitura (liberado a pedido do organizador)
+  if (!(await papelAtual())) return new Response("Não autorizado", { status: 401 });
 
   const respostas = await db.resposta.findMany({
     include: { criancas: { orderBy: { ordem: "asc" } } },
@@ -14,10 +15,10 @@ export async function GET() {
   });
 
   const linhas: string[][] = [
-    ["Responsável", "WhatsApp", "Presença", "Adultos", "Criança", "Idade", "Joga", "Goleiro", "Nível", "Recado"],
+    ["Responsável", "WhatsApp", "Presença", "Adultos", "Nomes dos adultos", "Criança", "Idade", "Joga", "Goleiro", "Nível", "Recado"],
   ];
   for (const r of respostas) {
-    const base = [r.responsavel, formatarTelefone(r.telefone), PRESENCA[r.presenca], String(r.adultos)];
+    const base = [r.responsavel, formatarTelefone(r.telefone), PRESENCA[r.presenca], String(r.adultos), nomesDosAdultos(r).join(", ")];
     if (r.criancas.length === 0) linhas.push([...base, "", "", "", "", "", r.recado ?? ""]);
     for (const c of r.criancas) {
       linhas.push([

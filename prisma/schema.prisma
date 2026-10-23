@@ -23,8 +23,11 @@ model Resposta {
   responsavel     String
   telefone        String
   presenca        Presenca
-  /// Adultos que vêm, contando o responsável.
+  /// Adultos que vêm, contando o responsável (= responsável, se ele vai, + acompanhantes).
   adultos         Int       @default(0)
+  /// Nomes dos outros adultos que vêm junto. Respostas antigas podem ter adultos sem nome
+  /// (adultos maior que 1 + acompanhantes): o formulário pede os nomes na próxima edição.
+  acompanhantes   String[]  @default([])
   recado          String?
   criadoPeloAdmin Boolean   @default(false)
   /// Quando o admin abriu o WhatsApp com cada lembrete (para ir um por um sem repetir).

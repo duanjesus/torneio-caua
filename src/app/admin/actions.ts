@@ -3,16 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { RetornoAcao } from "@/components/formulario-resposta";
-import { checkPassword, createSession, destroySession, requireAdmin } from "@/lib/auth";
+import { createSession, destroySession, papelDaSenha, requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { nomeFotoValido, validarResposta } from "@/lib/resposta";
 import { gravarResposta } from "@/lib/respostas";
 
 export async function login(_: string | null, form: FormData): Promise<string | null> {
   const senha = String(form.get("senha") ?? "");
-  if (!checkPassword(senha)) return "Senha incorreta.";
-  await createSession();
-  redirect("/admin");
+  const papel = papelDaSenha(senha);
+  if (!papel) return "Senha incorreta.";
+  await createSession(papel);
+  redirect(papel === "admin" ? "/admin" : "/admin/lista");
 }
 
 export async function logout(): Promise<void> {

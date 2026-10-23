@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { formatarTelefone, nomePublico, normalizarTelefone, validarResposta } from "./resposta.ts";
+import { formatarTelefone, nomesDosAdultos, nomePublico, normalizarTelefone, validarResposta } from "./resposta.ts";
 
 const base = {
   responsavel: "  Maria   Silva ",
@@ -95,4 +95,43 @@ test("criança de quem vem precisa da escolha: jogar ou só a festa", () => {
   assert.equal(soFesta.valor.criancas[0].joga, false);
   // Quem não vem não precisa escolher
   assert.ok(validarResposta({ ...base, presenca: "NAO", adultos: 0, criancas: [{ nome: "Bia", idade: 5 }] }).ok);
+});
+
+test("adultos com nome: quem responde + acompanhantes", () => {
+  const r = validarResposta({ ...base, adultos: undefined, euVou: true, acompanhantes: [" João  Silva ", "Ana"] });
+  assert.ok(r.ok);
+  assert.equal(r.valor.adultos, 3);
+  assert.deepEqual(r.valor.acompanhantes, ["João Silva", "Ana"]);
+  // quem responde pode não ir (só manda a avó com as crianças)
+  const semMim = validarResposta({ ...base, adultos: undefined, euVou: false, acompanhantes: ["Vó Lúcia"] });
+  assert.ok(semMim.ok);
+  assert.equal(semMim.valor.adultos, 1);
+});
+
+test("acompanhante sem nome é erro no campo dele", () => {
+  const r = validarResposta({ ...base, adultos: undefined, acompanhantes: ["Ana", " "] });
+  assert.ok(!r.ok);
+  assert.ok(r.erros["acompanhantes.1"]);
+  assert.equal(r.erros["acompanhantes.0"], undefined);
+});
+
+test("quem não vai não conta adultos, mas guarda os nomes já digitados", () => {
+  const r = validarResposta({ ...base, presenca: "NAO", adultos: undefined, acompanhantes: ["Ana", " "] });
+  assert.ok(r.ok);
+  assert.equal(r.valor.adultos, 0);
+  assert.deepEqual(r.valor.acompanhantes, ["Ana"]);
+});
+
+test("ninguém vindo (sem eu, sem acompanhante, sem criança) é erro", () => {
+  const r = validarResposta({ ...base, adultos: undefined, euVou: false, acompanhantes: [], criancas: [] });
+  assert.ok(!r.ok);
+  assert.ok(r.erros.adultos);
+});
+
+test("nomes dos adultos: quem respondeu + acompanhantes, e os sem nome de respostas antigas", () => {
+  const r = { responsavel: "Mariana", presenca: "SIM" as const };
+  assert.deepEqual(nomesDosAdultos({ ...r, adultos: 3, acompanhantes: ["João", "Vó Lúcia"] }), ["Mariana", "João", "Vó Lúcia"]);
+  assert.deepEqual(nomesDosAdultos({ ...r, adultos: 1, acompanhantes: ["Vó Lúcia"] }), ["Vó Lúcia"]);
+  assert.deepEqual(nomesDosAdultos({ ...r, adultos: 2, acompanhantes: [] }), ["Mariana", "adulto sem nome"]);
+  assert.deepEqual(nomesDosAdultos({ ...r, presenca: "NAO", adultos: 0, acompanhantes: ["João"] }), []);
 });

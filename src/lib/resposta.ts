@@ -23,7 +23,10 @@ export type RespostaInput = {
   responsavel: string;
   telefone: string;
   presenca: Presenca;
+  /** Quem responde (se vai) + acompanhantes. Calculado, não digitado. */
   adultos: number;
+  /** Nomes dos outros adultos que vêm junto. */
+  acompanhantes: string[];
   recado: string;
   criancas: CriancaInput[];
 };
@@ -85,8 +88,31 @@ export function validarResposta(raw: unknown, { exigirTelefone = true } = {}): R
   const presenca = PRESENCAS.includes(r.presenca as Presenca) ? (r.presenca as Presenca) : null;
   if (!presenca) erros.presenca = "Diga se você vem.";
 
-  const adultos = inteiro(r.adultos) ?? -1;
-  if (adultos < 0 || adultos > LIMITES.adultos) erros.adultos = `Entre 0 e ${LIMITES.adultos} adultos.`;
+  const vaiNaFesta = presenca === "SIM" || presenca === "TALVEZ";
+
+  // Adultos: quem responde (marca "Eu vou") + um nome por acompanhante.
+  let adultos: number;
+  let acompanhantes: string[] = [];
+  if (Array.isArray(r.acompanhantes)) {
+    if (r.acompanhantes.length > LIMITES.adultos - 1) erros.acompanhantes = `No máximo ${LIMITES.adultos - 1} acompanhantes.`;
+    if (vaiNaFesta) {
+      acompanhantes = r.acompanhantes.slice(0, LIMITES.adultos - 1).map((n, i) => {
+        const nome = texto(n);
+        if (nome.length < 2) erros[`acompanhantes.${i}`] = "Nome do adulto.";
+        else if (nome.length > 60) erros[`acompanhantes.${i}`] = "Nome muito longo.";
+        return nome;
+      });
+    } else {
+      // Quem não vai: guarda os nomes já digitados (sem cobrar nada), como as crianças, para o
+      // caso de a resposta voltar a ser "Vou!"; não contam como adultos.
+      acompanhantes = r.acompanhantes.slice(0, LIMITES.adultos - 1).map(texto).filter((n) => n.length >= 2 && n.length <= 60);
+    }
+    adultos = vaiNaFesta ? (r.euVou !== false ? 1 : 0) + acompanhantes.length : 0;
+  } else {
+    // Formato antigo (só o número), de quem estava com a página aberta antes da mudança
+    adultos = inteiro(r.adultos) ?? -1;
+    if (adultos < 0 || adultos > LIMITES.adultos) erros.adultos = `Entre 0 e ${LIMITES.adultos} adultos.`;
+  }
 
   const recado = texto(r.recado);
   if (recado.length > LIMITES.recado) erros.recado = `Recado com no máximo ${LIMITES.recado} caracteres.`;
@@ -94,7 +120,6 @@ export function validarResposta(raw: unknown, { exigirTelefone = true } = {}): R
   const lista = Array.isArray(r.criancas) ? r.criancas : [];
   if (lista.length > LIMITES.criancas) erros.criancas = `No máximo ${LIMITES.criancas} crianças por resposta.`;
 
-  const vaiNaFesta = presenca === "SIM" || presenca === "TALVEZ";
   const criancas: CriancaInput[] = lista.slice(0, LIMITES.criancas).map((item, i) => {
     const c = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
     const nome = texto(c.nome);
@@ -120,11 +145,11 @@ export function validarResposta(raw: unknown, { exigirTelefone = true } = {}): R
   });
 
   if (presenca === "SIM" && adultos + criancas.length === 0) {
-    erros.adultos = "Diga quantas pessoas vêm.";
+    erros.adultos = "Diga quem vem: marque “Eu vou” ou adicione um adulto ou uma criança.";
   }
 
   if (Object.keys(erros).length > 0 || !presenca) return { ok: false, erros };
-  return { ok: true, valor: { responsavel, telefone, presenca, adultos, recado, criancas } };
+  return { ok: true, valor: { responsavel, telefone, presenca, adultos, acompanhantes, recado, criancas } };
 }
 
 /** "Ana Paula Souza" → "Ana Paula S." — como os nomes das crianças aparecem em páginas públicas. */
@@ -133,4 +158,16 @@ export function nomePublico(nome: string): string {
   if (partes.length <= 1) return partes[0] ?? "";
   if (partes.length === 2) return `${partes[0]} ${partes[1][0]}.`;
   return `${partes[0]} ${partes[1]} ${partes[partes.length - 1][0]}.`;
+}
+
+/**
+ * Os adultos de uma resposta, pelo nome: quem respondeu (se vai) e os acompanhantes.
+ * Resposta antiga, que só tinha o número, completa com "adulto sem nome".
+ */
+export function nomesDosAdultos(r: { responsavel: string; presenca: Presenca; adultos: number; acompanhantes: string[] }): string[] {
+  if (r.presenca === "NAO" || r.adultos <= 0) return [];
+  const euVou = r.adultos > r.acompanhantes.length;
+  const nomes = [...(euVou ? [r.responsavel] : []), ...r.acompanhantes.slice(0, r.adultos)];
+  while (nomes.length < r.adultos) nomes.push("adulto sem nome");
+  return nomes;
 }
